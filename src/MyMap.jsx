@@ -33,12 +33,12 @@ const MyMap = ({ mapType, setIsAddLeadFormPopUp, isAddLeadFormPopUp }) => {
         const googleTerrainLayer = new WebTileLayer({
             urlTemplate: 'https://mts1.google.com/vt/lyrs=p&hl=en&x={col}&y={row}&z={level}&s=Galileo',
             copyright: 'Google Maps',
-            refreshInterval: 1
+            refreshInterval: 0.7
         });
 
         const googleLabelsLayer = new WebTileLayer({
             urlTemplate: 'https://mts1.google.com/vt/lyrs=h&hl=en&x={col}&y={row}&z={level}&s=Galileo',
-            refreshInterval: 1
+            refreshInterval: 0.7
         });
 
         map.add(googleTerrainLayer);
