@@ -1,0 +1,961 @@
+import React, { useEffect, useRef, useState } from 'react';
+import ReactDOMServer from 'react-dom/server';
+import Map from 'https://js.arcgis.com/4.30/@arcgis/core/Map.js';
+import MapView from 'https://js.arcgis.com/4.30/@arcgis/core/views/MapView.js';
+import GraphicsLayer from 'https://js.arcgis.com/4.30/@arcgis/core/layers/GraphicsLayer.js';
+import SketchViewModel from 'https://js.arcgis.com/4.30/@arcgis/core/widgets/Sketch/SketchViewModel.js';
+import Graphic from 'https://js.arcgis.com/4.30/@arcgis/core/Graphic.js';
+import * as webMercatorUtils from 'https://js.arcgis.com/4.30/@arcgis/core/geometry/support/webMercatorUtils.js';
+import Supercluster from 'supercluster';
+import debounce from 'lodash.debounce';
+import { loadModules } from 'esri-loader';
+import SideBar from './SideBar';
+import GeoJSONLayer from 'https://js.arcgis.com/4.30/@arcgis/core/layers/GeoJSONLayer.js';
+import KMLLayer from 'https://js.arcgis.com/4.30/@arcgis/core/layers/KMLLayer.js';
+import TileLayer from 'https://js.arcgis.com/4.30/@arcgis/core/layers/TileLayer.js';
+import VectorTileLayer from 'https://js.arcgis.com/4.30/@arcgis/core/layers/VectorTileLayer.js';
+import ElevationLayer from 'https://js.arcgis.com/4.30/@arcgis/core/layers/ElevationLayer.js';
+import MapImageLayer from 'https://js.arcgis.com/4.30/@arcgis/core/layers/MapImageLayer.js';
+import { Bars3Icon, GlobeAmericasIcon } from '@heroicons/react/24/outline';
+import Point from 'https://js.arcgis.com/4.30/@arcgis/core/geometry/Point.js';
+import JSZip from 'jszip';
+import useApi from '@/hooks/useApi';
+import SingleOneMarker from '../CanvasIcons/SingleOneMarker';
+import LeadBar from '../LeadBar/LeadBar';
+import LeadForm from './LeadForm';
+import uuidv4, { classNames } from '@/Providers/helpers';
+import LeadDetailPopUp from '../CanvasPopup/LeadDetailPopUp';
+import AddLeadPopUp from '../CanvasPopup/AddLeadPopUp';
+import CanvasFilters from './CanvasFilters';
+import ClusterPopup from '../CanvasPopup/ClusterPopup';
+import './canvas.css';
+import { usePage } from '@inertiajs/react';
+import LegendBar from './LegendBar';
+import Basemap from 'https://js.arcgis.com/4.30/@arcgis/core/Basemap.js';
+import { instantMeiliSearch } from '@meilisearch/instant-meilisearch';
+import { InstantSearch } from 'react-instantsearch';
+import AlgoliaSearch from './AlgoliaSearch';
+const SourceMap = ({ mapType, setIsAddLeadFormPopUp, isAddLeadFormPopUp }) => {
+  const { postRoute, getRoute } = useApi();
+  const [isMapCreated, setIsMapCreated] = useState(false);
+  const [checkFiles, setCheckFiles] = useState([]);
+  const [dataLoading, setDataLoading] = useState(false);
+  const [view, setView] = useState(null);
+  const [leadData, setLeadData] = useState({});
+  const [files, setFiles] = useState([]);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const mapDiv = useRef(null);
+  const kmlLayersRef = useRef([]);
+  const [sketchView, setSketchView] = useState(null);
+  const clusterLayer = useRef(null);
+  const superclusterRef = useRef(null);
+  const [boundingBox, setBoundingBox] = useState({});
+  const [mapPointCoordinates, setMapPointCoordinates] = useState({});
+  const [sketchLayer, setSketchLayer] = useState(null);
+  const [isLeadBarOpen, setIsLeadBarOpen] = useState(false);
+  const [isSketching, setIsSketching] = useState(false);
+  const [isAddLeadPopup, setIsAddLeadPopup] = useState(false);
+  const [isLeadDetailPopUp, setLeadDetailPopUp] = useState(false);
+  const [isClusterPopUp, setIsClusterPopUp] = useState(false);
+  const [popupData, setPopupData] = useState({ title: '', content: '' });
+  const [showOnlyPolygon, setShowOnlyPolyGon] = useState(false);
+  const [navigatorLoading, setNavigatorLoading] = useState(false);
+  const [clusterBox, setClusterBox] = useState({});
+  const [popupPosition, setPopupPosition] = useState({
+    left: '0px',
+    top: '0px',
+  });
+  const [isLeadAdded, setIsLeadAdded] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchOn, setIsSearchOn] = useState(false);
+  const labelsLayerRef = useRef(null);
+  const [popupCoordinates, setPopupCoordinates] = useState([]);
+  const [createdPolyGon, setCreatedPolyGon] = useState(null);
+  const satelliteLayerRef = useRef(null);
+  const grayCanvasLayer = useRef(null);
+  const placeLayerRef = useRef(null);
+  const [totalTerritories, setTotalTerritories] = useState([]);
+  const [isLeadEdit, setIsLeadEdit] = useState(false);
+  const [mapPointAddress, setMapPointAddress] = useState({
+    street: '',
+    house_number: '',
+    city: '',
+    state: '',
+    zip_code: '',
+    country: '',
+  });
+  const [territory, setTerritory] = useState({
+    name: '',
+    assigned_users: '',
+    owner: '',
+    boundary_type: '',
+    boundary_color: '#F2C94C',
+    team_id: '',
+  });
+  const [legendDetails, setLegendDetails] = useState({});
+  const { territories } = usePage().props;
+  const [isTerritoryMethod, setIsTerritoryMethod] = useState(null);
+  useEffect(() => {
+    setTotalTerritories(territories);
+  }, [territories]);
+  const filterItems = [
+    { label: 'Active Records', icon: 'MapPinIcon', isActive: false },
+    { label: 'Closed Records', icon: 'MapPinIcon', isActive: false },
+    { label: 'Territories', icon: 'TerritoryIcon', isActive: false },
+    { label: 'Team', icon: 'UserIcon', isActive: false },
+    { label: 'Satellite', icon: 'SateliteIcon', isActive: false },
+    { label: 'GrayCanvas', icon: 'GlobeAmericasIcon', isActive: false },
+    { label: 'KmL', icon: 'KmlIcon', isActive: false },
+    { label: 'GPS Trails', icon: 'GpsTrailIcon', isActive: false },
+  ];
+  function hexToRGBA(hex, alpha = 1) {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+  const [filters, setFilters] = useState(filterItems);
+  const [clusterSize, setClusterSize] = useState(Number);
+  const handlePointClick = (item, addNewlead) => {
+    const point = new Point({
+      x: item.geometry.coordinates[0],
+      y: item.geometry.coordinates[1],
+      spatialReference: { wkid: 4326 },
+    });
+    const screenPoint = view.toScreen(point);
+    view.goTo(
+      {
+        target: new Point({
+          longitude: item?.geometry?.coordinates[0],
+          latitude: item?.geometry?.coordinates[1],
+        }),
+        zoom: 17,
+      },
+      { duration: 500 }
+    );
+    setPopupData({
+      title: 'Lead Details',
+      content: `Coordinates: ${item.geometry.coordinates}`,
+    });
+    setPopupPosition({
+      left: `${screenPoint.x}px`,
+      top: `${screenPoint.y}px`,
+    });
+    setPopupCoordinates(item.geometry.coordinates);
+    getLeadPropData(item?.id);
+    if (addNewlead) {
+      setLeadData({});
+      setIsAddLeadPopup(true);
+      setIsClusterPopUp(false);
+      setLeadDetailPopUp(false);
+    } else {
+      setIsLeadBarOpen(true);
+
+      setLeadDetailPopUp(true);
+    }
+  };
+  useEffect(() => {
+    superclusterRef.current = new Supercluster({
+      radius: 40,
+      maxZoom: 20,
+    });
+    const features = [];
+    superclusterRef.current.load(features);
+  }, []);
+
+  const getFiles = async () => {
+    const { data } = await getRoute('/canvas/get-map-layers');
+    setFiles(data);
+    setCheckFiles(data);
+  };
+
+  const getLeadPropData = async (leadId, item) => {
+    const { data, errors } = await postRoute('/canvas/get-lead-prop', {
+      lead_id: leadId,
+    });
+    if (!errors) {
+      setLeadDetailPopUp(true);
+      setLeadData(data);
+    }
+  };
+
+  useEffect(() => {
+    getFiles();
+  }, []);
+
+  const addClustersToMap = useRef(
+    debounce(async (minLat, maxLat, minLon, maxLon, zoomLevel) => {
+      if (!superclusterRef.current) return;
+      const { data, errors } = await getRoute(
+        `/canvas/canvas-leads-search?minLat=${minLat}&maxLat=${maxLat}&minLon=${minLon}&maxLon=${maxLon}&zoomLevel=${zoomLevel}`
+      );
+      if (!errors) {
+        const newCluster = data;
+        clusterLayer.current.removeAll();
+        if (newCluster?.length > 0) {
+          newCluster?.forEach((cluster, index) => {
+            const [longitude, latitude] = cluster.geometry.coordinates;
+            const isCluster = cluster.properties.cluster;
+            let size = 30;
+            let pointCount = isCluster ? cluster.properties.point_count : 0;
+            if (isCluster) {
+              size = Math.min(70, Math.max(30, pointCount * 0.5));
+            }
+            const pinIconSvgString = ReactDOMServer.renderToStaticMarkup(
+              <SingleOneMarker
+                fillColor={
+                  cluster?.stage_color ? cluster?.stage_color : 'black'
+                }
+                className="h-6 w-6 text-blue-500 "
+              />
+            );
+            const encodedPinIconSvg = encodeURIComponent(pinIconSvgString);
+
+            const symbol = isCluster
+              ? {
+                  type: 'simple-marker',
+                  style: 'circle',
+                  label: pointCount.toString(),
+                  color: '#5789D7',
+                  size: `${size}px`,
+                  outline: {
+                    color: 'white',
+                    width: 1.25,
+                  },
+                }
+              : {
+                  type: 'picture-marker',
+                  url: 'data:image/svg+xml;charset=UTF-8,' + encodedPinIconSvg,
+                  width: '40px', // Define the pin icon size
+                  height: '40px',
+                };
+
+            const graphic = new Graphic({
+              geometry: {
+                type: 'point',
+                longitude,
+                latitude,
+              },
+              symbol,
+              id: cluster?.id,
+              text: cluster.properties.point_count || 1,
+              cluster: isCluster,
+              attributes: cluster.properties,
+              coordinates: cluster.geometry.coordinates,
+              size: size,
+              bounding_box: cluster?.bounding_box,
+            });
+
+            clusterLayer.current.add(graphic);
+
+            if (isCluster) {
+              const labelGraphic = new Graphic({
+                geometry: {
+                  type: 'point',
+                  longitude,
+                  latitude,
+                },
+                symbol: {
+                  type: 'text',
+                  color: 'white',
+                  haloColor: 'black',
+                  haloSize: '1px',
+                  text: cluster.properties.point_count_abbreviated.toString(),
+                  xoffset: 0,
+                  yoffset: 0,
+                  font: {
+                    size: '12px',
+                    family: 'sans-serif',
+                    weight: 'bold',
+                  },
+                },
+              });
+              clusterLayer.current.add(labelGraphic);
+            }
+          });
+        }
+      }
+    }, 150)
+  ).current;
+
+  useEffect(() => {
+    if (!mapDiv.current) return;
+    const map = new Map({
+      basemap: mapType,
+    });
+
+    const newView = new MapView({
+      container: mapDiv.current,
+      map: map,
+      zoom: 2,
+      maxZoom: 20,
+      center: [-84.006, 40.7128],
+      constraints: {
+        minZoom: 2,
+        maxZoom: 20,
+        rotationEnabled: false,
+      },
+      ui: {
+        components: [], // Removes zoom controls and other default UI elements
+      },
+    });
+    setView(newView);
+    const initialSketchLayer = new GraphicsLayer();
+    setSketchLayer(initialSketchLayer);
+
+    // const placeNamesLayer = new VectorTileLayer({
+    //   url: 'https://cdn.arcgis.com/sharing/rest/content/items/1768e8369a214dfab4e2167d5c5f2454/resources/styles/root.json',
+    // });
+    // map.add(placeNamesLayer, 1);
+    map.add(initialSketchLayer, 2);
+    const layer = new GraphicsLayer();
+
+    clusterLayer.current = layer;
+    newView.watch('center', newCenter => {
+      if (newCenter.latitude < -45.0 || newCenter.latitude > 70.0) {
+        newView.center = {
+          longitude: newCenter.longitude,
+          latitude: Math.max(-45.0, Math.min(newCenter.latitude, 70.0)),
+        };
+      }
+    });
+    map.add(layer, 5);
+
+    loadModules([
+      'esri/geometry/SpatialReference',
+      'esri/geometry/support/webMercatorUtils',
+    ])
+      .then(([SpatialReference, webMercatorUtils]) => {
+        let previousZoom = newView.zoom;
+        newView.watch('extent', async newExtent => {
+          const currentZoom = Math.round(newView.zoom);
+          if (newExtent) {
+            const { xmin, ymin, xmax, ymax } = newExtent;
+            const extent = {
+              xmin: xmin,
+              ymin: ymin,
+              xmax: xmax,
+              ymax: ymax,
+              spatialReference: SpatialReference.WebMercator,
+            };
+            const geoExtent = webMercatorUtils.webMercatorToGeographic(extent);
+            const {
+              xmin: minLon,
+              ymin: minLat,
+              xmax: maxLon,
+              ymax: maxLat,
+            } = geoExtent;
+            if (currentZoom !== previousZoom) {
+              clusterLayer.current.removeAll();
+              setIsClusterPopUp(false);
+            }
+            setBoundingBox({
+              minLat: minLat,
+              maxLat: maxLat,
+              minLon: minLon,
+              maxLon: maxLon,
+            });
+            addClustersToMap(minLat, maxLat, minLon, maxLon, currentZoom);
+
+            previousZoom = currentZoom;
+          }
+        });
+      })
+      .catch(err => {
+        console.error('Error loading ArcGIS modules: ', err);
+      });
+
+    newView.on('click', event => {
+      newView.hitTest(event).then(response => {
+        const graphic = response.results[0]?.graphic;
+        if (!graphic?.cluster) {
+          postRoute('canvas/get-address-by-coordinates', {
+            latitude: event?.mapPoint?.latitude,
+            longitude: event?.mapPoint?.longitude,
+          })
+            .then(addressResponse => {
+              const { data } = addressResponse;
+              setMapPointCoordinates({
+                latitude: event?.mapPoint?.latitude,
+                longitude: event?.mapPoint?.longitude,
+              });
+              setMapPointAddress({
+                street: data?.streetName,
+                house_number: data?.streetNumber,
+                city: data?.city,
+                state: data?.state,
+                zip_code: data?.postalCode,
+                country: data?.country,
+                country_code: data?.countryCode,
+              });
+            })
+            .catch(error => {
+              console.error('Error fetching address:', error);
+            });
+        }
+        if (graphic?.cluster) {
+          const point = new Point({
+            x: graphic?.coordinates[0],
+            y: graphic?.coordinates[1],
+            spatialReference: { wkid: 4326 },
+          });
+          const screenPoint = newView.toScreen(point);
+          setClusterSize(graphic?.size);
+
+          setPopupPosition({
+            left: `${screenPoint.x}px`,
+            top: `${screenPoint.y}px`,
+          });
+          setPopupCoordinates([
+            graphic?.coordinates[0],
+            graphic?.coordinates[1],
+          ]);
+          setIsClusterPopUp(true);
+          setLeadDetailPopUp(false);
+          setIsAddLeadPopup(false);
+          setClusterBox(graphic?.bounding_box);
+        } else if (graphic?.text === 1) {
+          const splitData = graphic?.id.split('_');
+          getLeadPropData(splitData[0]);
+          const point = new Point({
+            x: graphic?.coordinates[0],
+            y: graphic?.coordinates[1],
+            spatialReference: { wkid: 4326 },
+          });
+          const screenPoint = newView.toScreen(point);
+          newView.goTo({
+            target: new Point({
+              longitude: graphic?.coordinates[0],
+              latitude: graphic?.coordinates[1],
+            }),
+          });
+          setPopupData({
+            title: 'Lead Details',
+          });
+
+          setPopupPosition({
+            left: `${screenPoint.x}px`,
+            top: `${screenPoint.y}px`,
+          });
+          setPopupCoordinates([
+            graphic?.coordinates[0],
+            graphic?.coordinates[1],
+          ]);
+          setIsLeadBarOpen(true);
+          setLeadDetailPopUp(true);
+          setIsClusterPopUp(false);
+          setIsAddLeadPopup(false);
+        } else if (
+          newView.zoom > 15 &&
+          graphic?.origin?.layerId == 'Building'
+        ) {
+          const point = new Point({
+            x: event?.mapPoint?.longitude,
+            y: event?.mapPoint?.latitude,
+            spatialReference: { wkid: 4326 },
+          });
+          const screenPoint = newView.toScreen(point);
+          setPopupData({
+            title: 'Lead Details',
+          });
+          setPopupPosition({
+            left: `${screenPoint.x}px`,
+            top: `${screenPoint.y}px`,
+          });
+          setPopupCoordinates([
+            event?.mapPoint?.longitude,
+            event?.mapPoint?.latitude,
+          ]);
+          setIsAddLeadPopup(true);
+          setIsClusterPopUp(false);
+          setLeadDetailPopUp(false);
+        }
+      });
+    });
+
+    newView.watch('stationary', isStationary => {
+      if (isStationary) {
+        setDataLoading(false);
+      } else {
+        setDataLoading(true);
+      }
+    });
+    setView(newView);
+    setIsMapCreated(true);
+
+    return () => {
+      if (newView) newView.destroy();
+    };
+  }, [mapType, files]);
+
+  const drawPolygon = drawing => {
+    if (showOnlyPolygon) {
+      setShowOnlyPolyGon(false);
+    }
+    setShowOnlyPolyGon(false);
+    setIsSketching(pre => !pre);
+    sketchView.create('polygon');
+  };
+  const drawShowPolyGon = () => {
+    if (showOnlyPolygon) {
+      setShowOnlyPolyGon(false);
+      handleRedraw();
+    } else {
+      if (!isTerritoryMethod && sketchView) {
+        setShowOnlyPolyGon(true);
+        setIsSketching(pre => !pre);
+        sketchView.create('polygon');
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (!sketchLayer) return;
+    const isTerritory = filters?.find(
+      filter => filter?.label === 'Territories'
+    );
+    view.when(() => {
+      const sketchViewModel = new SketchViewModel({
+        view: view,
+        layer: sketchLayer,
+        polygonSymbol: {
+          type: 'simple-fill',
+          color: hexToRGBA(territory?.boundary_color, 0.2),
+          outline: {
+            color: territory?.boundary_color,
+            width: 1,
+            style: 'solid',
+          },
+        },
+      });
+
+      sketchViewModel.on('create', event => {
+        setIsSketching(true);
+        if (event.state === 'complete') {
+          setIsSketching(false);
+          const convertedRings = event.graphic.geometry?.rings.map(ring =>
+            ring.map(point => {
+              const [x, y] = point;
+              const geographicPoint = webMercatorUtils.webMercatorToGeographic({
+                x,
+                y,
+              });
+              return [geographicPoint.x, geographicPoint.y];
+            })
+          );
+          const newPolyGon = {
+            geometry: { type: 'polygon', rings: convertedRings },
+            symbol: {
+              type: 'simple-fill',
+              color: hexToRGBA(territory?.boundary_color, 0.2),
+              outline: {
+                color: territory?.boundary_color,
+                width: 1,
+              },
+            },
+            polygon_id: uuidv4(),
+          };
+          const polygonGraphic = new Graphic(newPolyGon);
+          sketchLayer.add(polygonGraphic);
+          setTerritory({ ...territory, ...newPolyGon });
+        }
+      });
+
+      sketchViewModel.on('update', event => {
+        setIsSketching(true);
+        if (event.state === 'complete') {
+          const updatedGraphic = event.graphics[0];
+          const updatedRings = updatedGraphic.geometry?.rings.map(ring =>
+            ring.map(point => {
+              const [x, y] = point;
+              const geographicPoint = webMercatorUtils.webMercatorToGeographic({
+                x,
+                y,
+              });
+              return [geographicPoint.x, geographicPoint.y];
+            })
+          );
+          const updatedPolygon = {
+            geometry: { type: 'polygon', rings: updatedRings },
+            symbol: {
+              type: 'simple-fill',
+              color: hexToRGBA(territory?.boundary_color, 0.2),
+              outline: {
+                color: territory?.boundary_color,
+                width: 1,
+              },
+            },
+            polygon_id: updatedGraphic?.polygon_id,
+          };
+          sketchLayer.removeAll();
+          const polygonGraphic = new Graphic(updatedPolygon);
+          setTerritory({ ...territory, ...updatedPolygon });
+          sketchLayer.add(polygonGraphic);
+          setTerritory({ ...territory, ...updatedPolygon });
+        }
+      });
+      setSketchView(sketchViewModel);
+    });
+    if (!isTerritoryMethod) {
+      if (isTerritory?.isActive) {
+        if (!isTerritoryMethod) {
+          totalTerritories.forEach(newTerr => {
+            const polygonGraphic = new Graphic({
+              geometry: { type: 'polygon', rings: newTerr?.geometry.rings },
+              symbol: newTerr.symbol,
+            });
+            sketchLayer.add(polygonGraphic);
+          });
+        } else {
+          handleToggle(2);
+        }
+      }
+    }
+  }, [
+    totalTerritories,
+    sketchLayer,
+    filters,
+    view,
+    territory,
+    setTerritory,
+    isTerritoryMethod,
+  ]);
+
+  useEffect(() => {
+    const isSatellite = filters?.find(filter => filter?.label === 'Satellite');
+    const isKml = filters?.find(filter => filter?.label === 'KmL');
+    const isGrayCanvas = filters?.find(
+      filter => filter?.label === 'GrayCanvas'
+    );
+    if (isKml?.isActive) {
+      files.forEach(async file => {
+        let layerToAdd;
+
+        if (file?.file_extension === 'geojson') {
+          layerToAdd = new GeoJSONLayer({
+            url: file.file_path,
+            opacity: 0.6,
+            outFields: ['*'],
+          });
+        } else if (file?.file_extension === 'kmz') {
+          const response = await fetch(file.file_path);
+          const kmzBlob = await response.blob();
+          const zip = await JSZip.loadAsync(kmzBlob);
+          let kmlFile = null;
+
+          zip.forEach((relativePath, fileInZip) => {
+            if (relativePath.endsWith('.kml')) {
+              kmlFile = fileInZip;
+            }
+          });
+
+          if (kmlFile) {
+            const kmlText = await kmlFile.async('text');
+            const kmlBlob = new Blob([kmlText], {
+              type: 'application/vnd.google-earth.kml+xml',
+            });
+            layerToAdd = new KMLLayer({
+              url: URL.createObjectURL(kmlBlob),
+            });
+          }
+        } else if (file?.file_extension === 'kml') {
+          layerToAdd = new KMLLayer({
+            url: file.file_path,
+          });
+        }
+
+        if (layerToAdd) {
+          const order = file.order || 0;
+          view?.map.add(layerToAdd, order);
+          kmlLayersRef.current.push(layerToAdd); // Store reference to the added layer
+        }
+      });
+    } else {
+      // Remove all KML layers when KmL is inactive
+      kmlLayersRef.current.forEach(layer => {
+        view?.map.remove(layer);
+      });
+      kmlLayersRef.current = []; // Clear the reference list
+    }
+    if (isSatellite) {
+      if (isSatellite.isActive) {
+        if (!satelliteLayerRef.current) {
+          const satelliteLayer = new TileLayer({
+            url: 'https://services.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer',
+          });
+          view.map.add(satelliteLayer, view?.map?.layers?.length - 2);
+          satelliteLayerRef.current = satelliteLayer;
+        }
+        // if (!labelsLayerRef.current) {
+        //   const labelsLayer = new TileLayer({
+        //     url: 'https://services.arcgisonline.com/arcgis/rest/services/Reference/World_Reference_Overlay/MapServer',
+        //   });
+        //   view.map.add(labelsLayer, view?.map?.layers?.length - 2);
+        //   labelsLayerRef.current = labelsLayer;
+        // }
+      } else {
+        if (satelliteLayerRef.current) {
+          view.map.remove(satelliteLayerRef.current);
+          satelliteLayerRef.current = null;
+        }
+        // if (labelsLayerRef.current) {
+        //   view.map.remove(labelsLayerRef.current);
+        //   labelsLayerRef.current = null;
+        // }
+      }
+    }
+
+    if (isGrayCanvas) {
+      if (isGrayCanvas.isActive) {
+        if (!grayCanvasLayer.current) {
+          const lightGrayCanvasLayer = new TileLayer({
+            url: 'https://services.arcgisonline.com/arcgis/rest/services/Canvas/World_Light_Gray_Base/MapServer',
+          });
+          view.map.add(lightGrayCanvasLayer, view?.map?.layers?.length - 2);
+
+          grayCanvasLayer.current = lightGrayCanvasLayer;
+        }
+      } else {
+        if (grayCanvasLayer.current) {
+          view.map.remove(grayCanvasLayer.current);
+          grayCanvasLayer.current = null;
+        }
+      }
+    }
+  }, [filters, view]);
+
+  const handleViewChange = () => {
+    if (isLeadDetailPopUp || isAddLeadPopup || isClusterPopUp) {
+      const point = new Point({
+        x: popupCoordinates[0],
+        y: popupCoordinates[1],
+        spatialReference: { wkid: 4326 },
+      });
+      const screenPoint = view.toScreen(point);
+      setPopupPosition({
+        left: `${screenPoint.x}px`,
+        top: `${screenPoint.y}px`,
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (!view) return;
+    view.watch('extent', handleViewChange);
+  }, [
+    view,
+    isLeadDetailPopUp,
+    popupCoordinates,
+    isAddLeadPopup,
+    isClusterPopUp,
+  ]);
+
+  const handleRedraw = e => {
+    if (sketchLayer) {
+      sketchLayer.removeAll();
+    }
+  };
+
+  const handleToggle = index => {
+    let preFilters = _.cloneDeep(filters);
+    preFilters = preFilters.map((filter, i) => {
+      if (index === i) {
+        if (index === 2) {
+          if (!isTerritoryMethod) {
+            sketchLayer.removeAll();
+            return { ...filter, isActive: !filter.isActive };
+          } else {
+            return filter;
+          }
+        } else {
+          return { ...filter, isActive: !filter.isActive };
+        }
+      } else {
+        return filter;
+      }
+    });
+    setFilters(preFilters);
+  };
+
+  const addTerritory = territory => {
+    sketchLayer.removeAll();
+    setTerritory(territory);
+    const newPolyGon = {
+      ...territory,
+      geometry: territory?.geometry,
+      symbol: {
+        type: 'simple-fill',
+        color: hexToRGBA(territory?.boundary_color, 0.2),
+        outline: {
+          color: territory?.boundary_color,
+          width: 1,
+        },
+      },
+    };
+    const polygonGraphic = new Graphic(newPolyGon);
+    sketchLayer.add(polygonGraphic);
+  };
+  useEffect(() => {
+    setTimeout(() => {
+      if (isLeadAdded) {
+        setIsLeadAdded(false);
+      }
+    }, 200);
+  }, [isLeadAdded]);
+  return (
+    <div className="-ml-1 flex h-full w-full">
+      {isLeadDetailPopUp ? (
+        <LeadDetailPopUp
+          leadData={leadData}
+          setIsAddLeadFormPopUp={setIsAddLeadFormPopUp}
+          title={popupData.title}
+          content={popupData.content}
+          onClose={() => {
+            setLeadDetailPopUp(false);
+            setIsLeadBarOpen(false);
+          }}
+          style={{ position: 'absolute', ...popupPosition }}
+        />
+      ) : isAddLeadPopup ? (
+        <AddLeadPopUp
+          leadData={leadData}
+          setIsAddLeadFormPopUp={setIsAddLeadFormPopUp}
+          title={popupData.title}
+          content={popupData.content}
+          onClose={() => {
+            setLeadData({});
+            setIsAddLeadPopup(false);
+            if (view && view.graphics) {
+              view.graphics.removeAll();
+            }
+          }}
+          style={{ position: 'absolute', ...popupPosition }}
+        />
+      ) : isClusterPopUp ? (
+        <ClusterPopup
+          clusterBox={clusterBox}
+          view={view}
+          clusterSize={clusterSize}
+          popupCoordinates={popupCoordinates}
+          setIsClusterPopUp={setIsClusterPopUp}
+          onClose={() => setIsClusterPopUp(false)}
+          style={{ position: 'absolute', ...popupPosition }}
+        />
+      ) : null}
+
+      <CanvasFilters
+        showOnlyPolygon={showOnlyPolygon}
+        handleRedraw={handleRedraw}
+        navigatorLoading={navigatorLoading}
+        setNavigatorLoading={setNavigatorLoading}
+        handlePointClick={handlePointClick}
+        setFilters={setFilters}
+        view={view}
+        drawPolygon={drawShowPolyGon}
+        filters={filters}
+        isSketching={isSketching}
+        handleToggle={handleToggle}
+      />
+      <LegendBar
+        legendDetails={legendDetails}
+        boundingCondition={boundingBox}
+      />
+
+      {!isLeadBarOpen && !isSidebarOpen && (
+        <div
+          onClick={() => {
+            if (!dataLoading) {
+              setIsSidebarOpen(pre => !pre);
+            }
+          }}
+          className={classNames(
+            'absolute right-4  top-4 z-50 cursor-pointer rounded-full',
+            !dataLoading && 'bg-white p-2'
+          )}
+        >
+          {!dataLoading ? (
+            <Bars3Icon className="h-6 w-6 text-latisGray-900 hover:text-latisSecondary-900" />
+          ) : (
+            <div className="h-10 w-10 animate-spin rounded-full border-4 border-blue-400 border-t-transparent"></div>
+          )}
+        </div>
+      )}
+
+      <div ref={mapDiv} className="grow rounded-l-lg" />
+
+      <AlgoliaSearch
+        setSearchQuery={setSearchQuery}
+        isSearchOn={isSearchOn}
+        setIsSearchOn={setIsSearchOn}
+        dataLoading={dataLoading}
+        isLeadAdded={isLeadAdded}
+        setIsLeadAdded={setIsLeadAdded}
+        boundingBox={boundingBox}
+      >
+        {isAddLeadFormPopUp && (
+          <LeadForm
+            setIsLeadAdded={setIsLeadAdded}
+            setLeadData={setLeadData}
+            view={view}
+            isAddLeadFormPopUp={isAddLeadFormPopUp}
+            setIsAddLeadFormPopUp={setIsAddLeadFormPopUp}
+            mapPointCoordinates={mapPointCoordinates}
+            mapPointAddress={mapPointAddress}
+            leadData={leadData?.lead}
+            isLeadEdit={isLeadEdit}
+            setIsLeadEdit={setIsLeadEdit}
+          />
+        )}
+
+        {!isAddLeadFormPopUp && !isLeadBarOpen && (
+          <SideBar
+            searchQuery={searchQuery}
+            isSearchOn={isSearchOn}
+            setIsTerritoryMethod={setIsTerritoryMethod}
+            isTerritoryMethod={isTerritoryMethod}
+            legendDetails={legendDetails}
+            setLegendDetails={setLegendDetails}
+            handleRedraw={handleRedraw}
+            setCreatedPolyGon={setCreatedPolyGon}
+            createdPolyGon={createdPolyGon}
+            drawPolygon={drawPolygon}
+            territory={territory}
+            setTerritory={setTerritory}
+            sketchLayer={sketchLayer}
+            addTerritory={addTerritory}
+            handlePointClick={handlePointClick}
+            boundingCondition={boundingBox}
+            isAddLeadFormPopUp={isAddLeadFormPopUp}
+            setIsAddLeadFormPopUp={setIsAddLeadFormPopUp}
+            setLeadData={setLeadData}
+            view={view}
+            dataLoading={dataLoading}
+            leadData={leadData}
+            getFiles={getFiles}
+            files={files}
+            setFiles={setFiles}
+            isPopUpOpen={isSidebarOpen}
+            setIsPopUpOpen={setIsSidebarOpen}
+            checkFiles={checkFiles}
+            setCheckFiles={setCheckFiles}
+            mapPointAddress={mapPointAddress}
+            mapPointCoordinates={mapPointCoordinates}
+          />
+        )}
+      </AlgoliaSearch>
+      {!isAddLeadFormPopUp && (
+        <LeadBar
+          setLeadData={setLeadData}
+          setIsLeadEdit={setIsLeadEdit}
+          setIsAddLeadFormPopUp={setIsAddLeadFormPopUp}
+          setMapPointAddress={setMapPointAddress}
+          leadData={leadData}
+          isLeadBarOpen={isLeadBarOpen}
+          setIsLeadBarOpen={setIsLeadBarOpen}
+        />
+      )}
+    </div>
+  );
+};
+
+export default SourceMap;

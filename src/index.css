@@ -1,0 +1,13 @@
+/* src/index.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@import 'https://js.arcgis.com/4.31/@arcgis/core/assets/esri/themes/dark/main.css';
+body{
+  height: 100vh;
+width: 100vw;
+}
+arcgis-map {
+  display: block;
+  height: 100vh;
+}
