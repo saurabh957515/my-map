@@ -1,0 +1,66 @@
+.custom-popup {
+  position: relative;
+}
+
+.arrow-down {
+  position: absolute;
+  bottom: -10px; /* Position the arrow right below the popup */
+  left: 80%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-top: 10px solid white; /* Arrow color matches popup background */
+}
+.ais-SearchBox-input {
+  background-color: #f9f9f9;
+  border-radius: 6px;
+  width: 100%;
+  border-color: #dfdede;
+  margin-top: 8px;
+  padding-left: 33px;
+  font-size: 12px;
+}
+.ais-SearchBox-input::placeholder {
+  color: #a8a8a8;
+  font-size: 12px;
+}
+.ais-SearchBox-resetIcon {
+  display: none;
+}
+.ais-SearchBox-submit {
+  display: none;
+}
+@keyframes moveDots {
+  0% {
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+  75% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.dot {
+  display: inline-block;
+  animation: moveDots 1.5s infinite;
+  margin-right: 0.2rem; /* Adds spacing between dots */
+}
+
+/* Custom delays for sequential dot animations */
+.delay-200 {
+  animation-delay: 0.2s;
+}
+
+.delay-400 {
+  animation-delay: 0.4s;
+}

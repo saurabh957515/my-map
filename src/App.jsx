@@ -4,6 +4,7 @@ import viteLogo from '/vite.svg'
 import './App.css'
 import MyMap from './MyMap'
 import MyGoogleMap from './MyGoogleMap'
+import ArcGisMap from './Canvas/Index'
 
 function App() {
   const [count, setCount] = useState(0)
@@ -11,6 +12,7 @@ function App() {
   return (
     <>
       {/* <MyGoogleMap /> */}
+      <ArcGisMap/>
       <MyMap />
     </>
   )
