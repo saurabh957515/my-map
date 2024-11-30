@@ -6,7 +6,7 @@ import React, { useState } from 'react';
 import FieldsForm from './FieldsForm';
 import { PencilIcon } from '@heroicons/react/24/outline';
 
-function FieldEdit({ field, staticFields }) {
+function FieldEdit({ field }) {
   const [isShowFieldEditForm, setIsShowFieldEditForm] = useState(false);
 
   const { data, setData, errors, setError, clearErrors, processing, reset } =
@@ -20,6 +20,7 @@ function FieldEdit({ field, staticFields }) {
       show_in_activity_feed: field.show_in_activity_feed,
       options: field.options,
       required_stages: field.required_stages,
+      is_default: field.is_default,
     });
 
   const onClose = () => {
@@ -44,19 +45,18 @@ function FieldEdit({ field, staticFields }) {
   return (
     <>
       <PencilIcon
-        className="h-4 w-4"
+        className="h-4 w-4 text-latisGray-800"
         onClick={() => {
           setIsShowFieldEditForm(true);
         }}
       />
       <Popup open={isShowFieldEditForm} setOpen={onClose} header="Edit Field">
-        <div className="scrollbar-hide max-h-[500px] grid-cols-6 gap-5 overflow-y-auto sm:grid">
+        <div className="scrollbar-hide max-h-[50vh] grid-cols-6 gap-5 overflow-y-auto sm:grid">
           <FieldsForm
             data={data}
             setData={setData}
             errors={errors}
             isEdit={false}
-            staticFields={staticFields}
           />
         </div>
         <div className="col-span-6 mt-5 flex justify-end space-x-4 border-t border-latisGray-400 pt-5">

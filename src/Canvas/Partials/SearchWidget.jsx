@@ -3,10 +3,10 @@ import { MapPinIcon } from '@heroicons/react/20/solid';
 import { MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { loadModules } from 'esri-loader';
 import React, { useEffect, useRef, useState } from 'react';
-import Graphic from 'https://js.arcgis.com/4.30/@arcgis/core/Graphic.js';
-import Point from 'https://js.arcgis.com/4.30/@arcgis/core/geometry/Point.js';
+import Graphic from '@arcgis/core/Graphic.js';
+import Point from '@arcgis/core/geometry/Point.js';
 import ReactDOMServer from 'react-dom/server';
-import PictureMarkerSymbol from 'https://js.arcgis.com/4.30/@arcgis/core/symbols/PictureMarkerSymbol.js';
+import PictureMarkerSymbol from '@arcgis/core/symbols/PictureMarkerSymbol.js';
 const SearchWidget = ({ view, handlePointClick }) => {
   const [suggestions, setSuggestions] = useState([]);
   const searchWidgetRef = useRef(null);

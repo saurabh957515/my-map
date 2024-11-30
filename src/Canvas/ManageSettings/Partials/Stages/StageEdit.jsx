@@ -38,7 +38,7 @@ function StageEdit({ stage }) {
   return (
     <>
       <PencilIcon
-        className="h-4 w-4"
+        className="h-4 w-4 text-latisGray-800"
         onClick={() => {
           setIsShowStageEditForm(true);
         }}

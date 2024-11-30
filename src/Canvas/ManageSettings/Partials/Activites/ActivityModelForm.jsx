@@ -76,7 +76,7 @@ function ActivityModelForm({ data, setData, errors, isEdit, reset }) {
           name="default_duration"
           value={data?.default_duration}
           required="required"
-          placeholder="Set Default Duration"
+          placeholder="00:00"
           handleChange={e => handleChange('default_duration', e.target.value)}
         />
         <InputError message={errors.default_duration} className="mt-2" />

@@ -49,7 +49,7 @@ function EditLead({ isEditLeadModalOpen, setIsEditLeadModalOpen }) {
             <InputError message={errors?.address} className="mt-2" />
           </div>
         </div>
-        <div className="mt-5 flex justify-end space-x-4 border-t pt-5">
+        <div className="mt-5 flex flex-wrap items-center justify-center gap-4 border-t pt-5 sm:justify-end">
           <SecondaryButton onClick={() => onClose()}>
             <span className="px-3.5 ">Cancel</span>
           </SecondaryButton>

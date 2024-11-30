@@ -128,9 +128,15 @@ const LeadLists = ({
                 {item.formatted_address}
               </div>
               <div className="flex items-center gap-2 text-xs font-normal text-latisGray-800">
-                <span className="">(410) 837-8429</span>
-                <span className="h-3 w-[1px] bg-latisGray-800"></span>
-                <span>georgea9@hotmail.com</span>
+                {item?.properties?.Phone && (
+                  <span>{item.properties.Phone}</span>
+                )}
+                {item?.properties?.Phone && item?.properties?.Email && (
+                  <span className="h-3 w-[1px] bg-latisGray-800"></span>
+                )}
+                {item?.properties?.Email && (
+                  <span>{item.properties.Email}</span>
+                )}
               </div>
             </div>
           </div>

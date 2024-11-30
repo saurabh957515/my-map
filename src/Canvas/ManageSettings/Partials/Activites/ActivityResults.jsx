@@ -186,7 +186,7 @@ function ActivityResults({ data, setData, reset }) {
                                     />
                                   </div>
                                 )}
-                                <div className="ml-auto flex justify-end space-x-1.5">
+                                <div className="ml-auto flex justify-end space-x-2">
                                   <SecondaryButton onClick={cancelEditResult}>
                                     Cancel
                                   </SecondaryButton>
@@ -200,29 +200,31 @@ function ActivityResults({ data, setData, reset }) {
                               </div>
                             ) : (
                               <>
-                                {result.is_active ? (
-                                  <DragandMove className="inline h-7 w-7" />
-                                ) : (
-                                  <EyeSlashIcon className="inline h-7 w-7 text-gray-400" />
-                                )}
-                                <div className="flex items-center px-2">
-                                  <span
-                                    className="mr-2 inline-block h-3 w-3 rounded-full"
-                                    style={{ backgroundColor: result.color }}
-                                  ></span>
-                                  <p className="text-gray-700">
-                                    {result.title}
-                                  </p>
+                                <div className="flex items-center space-x-2">
+                                  {result.is_active ? (
+                                    <DragandMove className="h-5 w-5 text-latisGray-800" />
+                                  ) : (
+                                    <EyeSlashIcon className="h-5 w-5 text-gray-400" />
+                                  )}
+                                  <div className="flex items-center space-x-1">
+                                    <span
+                                      className="h-2 w-2 rounded-full "
+                                      style={{ backgroundColor: result.color }}
+                                    ></span>
+                                    <p className="text-sm font-normal text-latisGray-900">
+                                      {result.title}
+                                    </p>
+                                  </div>
                                 </div>
                                 <div className="ml-auto flex justify-end space-x-1.5">
                                   {!(result.is_default || result.is_active) && (
                                     <TrashIcon
-                                      className="h-4 w-4 "
+                                      className="h-4 w-4 text-latisGray-800"
                                       onClick={() => deleteResult(index)}
                                     />
                                   )}
                                   <PencilIcon
-                                    className="h-4 w-4"
+                                    className="h-4 w-4 text-latisGray-800"
                                     onClick={() => editResult(index)}
                                   />
                                 </div>
@@ -233,7 +235,7 @@ function ActivityResults({ data, setData, reset }) {
                       </Draggable>
                     ))
                 ) : (
-                  <div className="rounded-lg bg-gray-100 p-3 text-center text-gray-600">
+                  <div className="mb-4 mt-2.5 rounded-md bg-latisGray-300 p-4 text-center text-sm font-normal text-latisGray-700">
                     There are no custom results
                   </div>
                 )}
@@ -246,7 +248,7 @@ function ActivityResults({ data, setData, reset }) {
         {!showNewResultInput && editIndex === null && (
           <PrimaryButton
             type="button"
-            className="w-full max-w-none"
+            className="mt-4 w-full max-w-none rounded px-4 py-2.5"
             onClick={addNewResult}
           >
             Add Result
@@ -273,7 +275,7 @@ function ActivityResults({ data, setData, reset }) {
             </div>
           </div>
 
-          <div className="col-span-6 mt-4 flex space-x-4">
+          <div className="col-span-6 mt-5 flex space-x-4">
             <SecondaryButton
               onClick={() => {
                 setShowNewResultInput(false);

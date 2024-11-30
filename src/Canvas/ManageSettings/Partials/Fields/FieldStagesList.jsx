@@ -50,18 +50,13 @@ function FieldStagesList({ data, setData }) {
         <div className="scrollbar-hide max-h-40 space-y-2 overflow-y-auto">
           {CanvasStages?.length > 0 &&
             CanvasStages.map((stage, index) => (
-              <div className="flex w-full items-center gap-x-2 rounded-lg border border-gray-300 px-4 py-2">
-                <div className="flex items-center px-2">
-                  <p className="text-gray-700">{stage.name}</p>
-                </div>
-
-                <div className="ml-auto flex justify-end space-x-1.5">
-                  <ToggleSwitch
-                    className="h-4 w-4 cursor-pointer"
-                    enabled={stage.is_required}
-                    onChange={value => handleToggleChange(stage.id, value)}
-                  />
-                </div>
+              <div className="flex w-full items-center justify-between gap-x-2 rounded-lg border border-gray-300 px-4 py-2">
+                <p className="text-sm text-latisGray-900">{stage.name}</p>
+                <ToggleSwitch
+                  className="h-4 w-4 cursor-pointer"
+                  enabled={stage.is_required}
+                  onChange={value => handleToggleChange(stage.id, value)}
+                />
               </div>
             ))}
         </div>

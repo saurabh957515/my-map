@@ -89,31 +89,30 @@ function FieldOptionsList({ data, setData, errors }) {
                     >
                       {(provided, snapshot) => (
                         <div
-                          className={`flex w-full items-center gap-x-2 rounded-lg border border-gray-300 px-4 py-2 ${
+                          className={`flex w-full items-center justify-between gap-x-2 rounded-lg border border-gray-300 px-4 py-2 ${
                             snapshot.isDragging ? 'bg-gray-100' : ''
                           }`}
                           ref={provided.innerRef}
                           {...provided.draggableProps}
                           {...provided.dragHandleProps}
                         >
-                          <DragandMove className="inline h-7 w-7" />
-
-                          <div className="flex items-center px-2">
-                            <p className="text-gray-700">{option.title}</p>
+                          <div className="flex items-center space-x-2">
+                            <DragandMove className="h-5 w-5 text-latisGray-800" />
+                            <p className="text-sm text-latisGray-800 ">
+                              {option.title}
+                            </p>
                           </div>
 
-                          <div className="ml-auto flex justify-end space-x-1.5">
-                            <CrossIcon
-                              className="h-4 w-4 cursor-pointer"
-                              onClick={() => deleteOption(index)}
-                            />
-                          </div>
+                          <CrossIcon
+                            className="h-3 w-3 cursor-pointer text-latisGray-800"
+                            onClick={() => deleteOption(index)}
+                          />
                         </div>
                       )}
                     </Draggable>
                   ))
                 ) : (
-                  <div className="rounded-lg bg-gray-100 p-3 text-center text-gray-600">
+                  <div className="mt-2 rounded-md bg-latisGray-300 p-4 text-center text-sm text-latisGray-700">
                     There are no options
                   </div>
                 )}

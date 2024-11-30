@@ -18,7 +18,10 @@ function DeleteField({ field }) {
 
   return (
     <>
-      <TrashIcon className="h-4 w-4" onClick={e => destroy(e)} />
+      <TrashIcon
+        className="h-4 w-4 text-latisGray-800"
+        onClick={e => destroy(e)}
+      />
       <DeleteDialogue
         dialogIsOpen={dialogIsOpen}
         setDialogIsOpen={setDialogIsOpen}

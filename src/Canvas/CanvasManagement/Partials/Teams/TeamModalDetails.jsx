@@ -50,7 +50,7 @@ const TeamModalDetails = ({
             >
               <Dialog.Panel
                 className={classNames(
-                  'fixed right-0 top-0 z-10 h-[100vh] overflow-y-auto border-l bg-white transition-all duration-300  '
+                  'fixed right-0 top-0 z-10 h-[100vh] w-[20%] overflow-y-auto border-l bg-white transition-all duration-300  '
                 )}
               >
                 <div className="flex w-full justify-between border-b bg-white p-4">

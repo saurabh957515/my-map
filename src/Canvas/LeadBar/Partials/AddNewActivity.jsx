@@ -12,7 +12,7 @@ import TimeInput from '@/Components/TimeInput';
 import Flatpickr from 'react-flatpickr';
 import 'flatpickr/dist/flatpickr.css';
 import moment from 'moment';
-import { route } from '@/Providers/helpers';
+import { formatDate, formatTime, route } from '@/Providers/helpers';
 import _ from 'lodash';
 function AddNewActivity({
   isActivity,
@@ -27,12 +27,14 @@ function AddNewActivity({
   isActivityEdit,
   selectedActivity,
   setIsActivityEdit,
+  isLogging,
+  setIsLogging,
 }) {
   const { auth } = usePage().props;
   const default_Activity = {
     title: '',
-    from_date: '',
-    to_date: '',
+    from_date: formatDate(moment()),
+    to_date: formatDate(moment().add(1, 'day')),
     from_time: '',
     is_log: false,
     to_time: '',
@@ -59,14 +61,18 @@ function AddNewActivity({
       setData({
         ...selectedActivity,
         assigned_to: selectedActivity?.assigned_to?.id,
+        is_log: isLogging,
       });
     }
-  }, [selectedActivity, isActivityEdit, isActivity]);
+  }, [selectedActivity, isActivityEdit, isActivity, isLogging]);
   function onClose() {
     clearErrors();
     setIsActivity(false);
-    setData(default_Activity);
-    setIsActivityEdit(false);
+    setTimeout(() => {
+      setData(default_Activity);
+      setIsActivityEdit(false);
+      setIsLogging(false);
+    }, 200);
   }
 
   const validateFields = () => {
@@ -141,6 +147,7 @@ function AddNewActivity({
             getLeadPropData(leadData?.lead?.id);
           },
           onError: error => {
+            console.log(error);
             setError(error);
             setIsLoading(false);
           },
@@ -156,11 +163,18 @@ function AddNewActivity({
       created_by: auth?.user?.id,
     }));
   }, [leadData, auth]);
+
   return (
     <Popup
       open={isActivity}
       setOpen={onClose}
-      header={isActivityEdit ? 'Edit Activity' : 'Add New Activity'}
+      header={
+        isActivityEdit
+          ? isLogging
+            ? `Log ${selectedActivity?.activity_name}`
+            : 'Edit Activity'
+          : 'Add New Activity'
+      }
       size="md"
     >
       <div className="gap-5 sm:grid sm:grid-cols-12">
@@ -200,8 +214,8 @@ function AddNewActivity({
               handleChange={e => {
                 setData(pre => ({
                   ...pre,
-                  from_time: '00:00',
-                  to_time: '23:59',
+                  from_time: '00:00:00',
+                  to_time: '23:59:00',
                   all_day: e.target.checked,
                 }));
               }}
@@ -223,7 +237,7 @@ function AddNewActivity({
                 <Flatpickr
                   value={data?.from_date}
                   onChange={([time], date) => {
-                    setData('from_date', date);
+                    setData('from_date', formatDate(date));
                   }}
                   className="w-full rounded-md border border-latisGray-600 p-2 text-sm"
                   options={{ dateFormat: 'Y-m-d', enableTime: false }}
@@ -234,13 +248,14 @@ function AddNewActivity({
                 <TimeInput
                   disabled={data?.all_day}
                   use12Hours={false}
+                  format="HH:mm:ss"
                   className="w-full "
                   name="time"
                   type="number"
                   placeholder="0.00"
                   value={data?.from_time || ''}
                   onChange={value => {
-                    setData({ ...data, from_time: value });
+                    setData({ ...data, from_time: formatTime(value) });
                   }}
                 />
                 <InputError message={errors?.from_time} className="mt-2" />
@@ -255,10 +270,14 @@ function AddNewActivity({
                 <Flatpickr
                   value={data?.to_date}
                   onChange={([time], date) => {
-                    setData('to_date', date);
+                    setData('to_date', formatDate(date));
                   }}
                   className="w-full rounded-md border border-latisGray-600 p-2 text-sm"
-                  options={{ dateFormat: 'Y-m-d', enableTime: false }}
+                  options={{
+                    dateFormat: 'Y-m-d',
+                    enableTime: false,
+                    minDate: data?.from_date,
+                  }}
                 />
                 <InputError message={errors?.to_date} className="mt-2" />
               </div>
@@ -268,12 +287,13 @@ function AddNewActivity({
                   disabled={data?.all_day}
                   use12Hours={false}
                   className="w-full "
+                  format="HH:mm:ss"
                   name="time"
                   type="number"
                   placeholder="0.00"
                   value={data?.to_time || ''}
                   onChange={value => {
-                    setData({ ...data, to_time: value });
+                    setData({ ...data, to_time: formatTime(value) });
                   }}
                 />
                 <InputError message={errors?.to_time} className="mt-2" />
@@ -338,6 +358,7 @@ function AddNewActivity({
                       }));
                     }}
                     className="max-w-20"
+                    placeholder="00"
                   />
                   <InputError message={errors?.time} />
                 </div>

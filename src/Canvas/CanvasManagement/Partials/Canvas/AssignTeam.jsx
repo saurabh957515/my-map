@@ -104,7 +104,7 @@ function AssignTeam({ setOpenAssignTeam, openAssignTeam }) {
         ) : null}
       </div>
 
-      <div className="flex justify-end pt-5 mt-10 space-x-4 border-t">
+      <div className="mt-10 flex justify-end space-x-4 border-t pt-5">
         <SecondaryButton onClick={onClose}>
           <span className="px-3.5">Cancel</span>
         </SecondaryButton>

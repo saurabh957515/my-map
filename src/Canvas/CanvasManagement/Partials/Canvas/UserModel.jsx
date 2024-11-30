@@ -1,5 +1,6 @@
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
+import PhoneInput from '@/Components/PhoneInput';
 import Popup from '@/Components/Popup';
 import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
@@ -16,7 +17,7 @@ function UserModel({
   setIsModalOpen,
   user,
 }) {
-  const { data, setData, post, processing, errors, reset } = useForm({
+  let emptyUser = {
     name: '',
     email: '',
     phone: '',
@@ -24,7 +25,17 @@ function UserModel({
     divisions: [],
     offices: [],
     trades: [],
-  });
+  };
+  const { data, setData, post, processing, errors, setError, clearErrors } =
+    useForm({
+      name: '',
+      email: '',
+      phone: '',
+      company_title: '',
+      divisions: [],
+      offices: [],
+      trades: [],
+    });
 
   useEffect(() => {
     if (user) {
@@ -103,16 +114,18 @@ function UserModel({
 
   const handleSubmit = async e => {
     e.preventDefault();
-
     const url = 'users/storeCanvaser';
     post(url, {
       onSuccess: () => {
-        if (Object.keys(errors).length === 0) {
-          setIsModalOpen(false);
-        }
+        setData(emptyUser);
+        setIsModalOpen(false);
+        clearErrors();
+      },
+      onError: err => {
+        clearErrors();
+        setError(err);
       },
     });
-    reset();
   };
 
   const getOption = selectOption => {

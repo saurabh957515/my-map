@@ -6,20 +6,10 @@ import SecondaryButton from '@/Components/SecondaryButton';
 import Popup from '@/Components/Popup';
 import { router, useForm, usePage } from '@inertiajs/react';
 import ReactSelect from '@/Components/ReactSelect';
-import { classNames, route } from '@/Providers/helpers';
 import PrimaryButton from '@/Components/PrimaryButton';
 import RadioGroup from '@/Components/RadioGroup';
-import ExportModal from '../Canvas/ExportModal';
 
-function AssignJobLocation({
-  isEdit,
-  assignJobLocation,
-  setAssignJobLocation,
-  divisions,
-  officeOptions,
-  trades,
-  user,
-}) {
+function AssignJobLocation({ assignJobLocation, setAssignJobLocation }) {
   const { data, setData, post, errors } = useForm({
     address: '',
     state: '',

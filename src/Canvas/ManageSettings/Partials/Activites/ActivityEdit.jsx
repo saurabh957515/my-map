@@ -42,7 +42,7 @@ function ActivityEdit({ activity }) {
   return (
     <>
       <PencilIcon
-        className="h-4 w-4"
+        className="h-4 w-4 cursor-pointer text-latisGray-800"
         onClick={() => {
           setIsShowFieldEditForm(true);
         }}
@@ -52,7 +52,7 @@ function ActivityEdit({ activity }) {
         setOpen={onClose}
         header="Edit Activity"
       >
-        <div className="scrollbar-hide max-h-[500px] grid-cols-6 gap-5 overflow-y-auto sm:grid">
+        <div className="scrollbar-hide max-h-[500px] grid-cols-6 gap-3 overflow-y-auto sm:grid">
           <ActivityModelForm
             data={data}
             setData={setData}
@@ -60,7 +60,7 @@ function ActivityEdit({ activity }) {
             isEdit={true}
           />
         </div>
-        <div className="col-span-6 mt-5 flex justify-end space-x-4">
+        <div className="mt-10 flex justify-end space-x-4 border-t border-latisGray-500 pt-5">
           <SecondaryButton onClick={onClose}>Cancel</SecondaryButton>
           <PrimaryButton type="button" className="w-36" onClick={Save}>
             Save

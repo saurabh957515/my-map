@@ -36,43 +36,12 @@ const LeadBar = ({
   setIsLeadEdit,
   handlePointClick,
 }) => {
-  const { postRoute } = useApi();
-  const [isLeadData, setIsLeadData] = useState({});
-  const [leadDetail, setIsLeadDetail] = useState({
-    name: '',
-    address: '',
-    id: ' ',
-    canvas_lead_id: '',
-  });
-
-  useEffect(() => {
-    setIsLeadData(leadData);
-    const first_name = leadData?.lead?.canvas_lead_metas?.find(
-      detail => detail?.key === 'First Name'
-    )?.value;
-    const last_name = leadData?.lead?.canvas_lead_metas?.find(
-      detail => detail?.key === 'Last Name'
-    )?.value;
-    const fullName =
-      first_name || last_name
-        ? `${first_name} ${last_name}`.trim()
-        : 'Name Not Assigned';
-    const canvas_lead_id = leadData?.lead?.canvas_lead_metas[0]?.canvas_lead_id;
-    const address = leadData?.lead?.address;
-    const addressValues = address ? Object.values(address).join(', ') : '';
-    setIsLeadDetail({
-      name: fullName,
-      address: addressValues,
-      canvas_lead_id: canvas_lead_id,
-    });
-  }, [leadData]);
-
   const [selected, setSelected] = useState(0);
   return (
     <div
       className={classNames(
         ' right-0 z-50 flex h-full flex-col items-start  bg-white shadow transition-all duration-300',
-        isLeadBarOpen ? 'lg:w-3/12' : ' w-0 ',
+        isLeadBarOpen ? 'min-w-86 w-3/4 sm:w-5/12 lg:w-3/12' : ' w-0 ',
         className ? className : 'relative'
       )}
     >
@@ -149,6 +118,7 @@ const LeadBar = ({
                   manageComponent
                 ) : (
                   <LeadOwner
+                    setLeadData={setLeadData}
                     handlePointClick={handlePointClick}
                     setIsLeadEdit={setIsLeadEdit}
                     setMapPointAddress={setMapPointAddress}

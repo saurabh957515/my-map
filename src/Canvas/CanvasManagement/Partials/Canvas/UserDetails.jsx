@@ -6,20 +6,16 @@ import TextInput from '@/Components/TextInput';
 import NoDataListWarning from '@/Pages/Tenant/Call/Partials/NoDataListWarning';
 import {
   AdjustmentsHorizontalIcon,
-  ArrowDownTrayIcon,
   MagnifyingGlassIcon,
   PlusCircleIcon,
-  ArrowUpTrayIcon,
 } from '@heroicons/react/24/outline';
 import UserModel from './UserModel';
 import ListActions from '@/Components/ListActions';
 import axios from 'axios';
-import Export from './Export';
 import Checkbox from '@/Components/Checkbox';
 import AssignTeam from './AssignTeam';
 import MoveCanvaser from './MoveCanvaser';
 import DeleteCanvas from './DeleteCanvas';
-import ImportModal from './ImportModal';
 import SortIcon from '@/Icons/SortIcon';
 
 function UserDetails({
@@ -34,48 +30,15 @@ function UserDetails({
   officeOptions,
   userData,
   setIsCanvasOpen,
-  isCanvasOpen,
   setSelectedUser,
 }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [officeDeleteDialogOpen, setOfficeDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
-  const [isExportModal, setIsExportModal] = useState(false);
   const [openAssignTeam, setOpenAssignTeam] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [userList, setUserList] = useState(userData);
   const [openMoveCanvaser, setOpenMoveCanvaser] = useState(false);
-  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
-  const [selectedFile, setSelectedFile] = useState(null);
-
-  const closeImportModal = () => {
-    setIsImportModalOpen(false);
-    setSelectedFile(null);
-  };
-
-  const handleFileChange = event => {
-    setSelectedFile(event.target.files[0]);
-  };
-
-  const downloadSampleFile = async () => {
-    try {
-      const response = await axios.get('/download-sample?module=CanvasLead', {
-        responseType: 'blob',
-      });
-      const filename = response.headers['x-filename'] || 'sample.csv';
-      const blob = new Blob([response.data], { type: 'text/csv' });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', filename);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } catch (error) {
-      console.error('Error downloading the file', error);
-    }
-  };
-
   const [editingUser, setEditingUser] = useState(null);
 
   useEffect(() => {
@@ -200,18 +163,6 @@ function UserDetails({
     <>
       {!_.isEmpty(data) || !_.isEmpty(errors) ? (
         <>
-          <Export
-            isExportModal={isExportModal}
-            setIsExportModal={setIsExportModal}
-          />
-          <ImportModal
-            isImportModalOpen={isImportModalOpen}
-            setIsImportModalOpen={setIsImportModalOpen}
-            closeImportModal={closeImportModal}
-            downloadSampleFile={downloadSampleFile}
-            handleFileChange={handleFileChange}
-            selectedFile={selectedFile}
-          />
           <AssignTeam
             openAssignTeam={openAssignTeam}
             setOpenAssignTeam={setOpenAssignTeam}
@@ -239,45 +190,44 @@ function UserDetails({
             officeDeleteDialogOpen={officeDeleteDialogOpen}
             setOfficeDeleteDialogOpen={setOfficeDeleteDialogOpen}
           />
-          <div className={'w-full rounded-lg border p-4 pt-1'}>
-            <div className="mt-3 flex items-center justify-between">
-              <div>Canvaser</div>
-              <div className="flex items-center space-x-4">
-                <div className="relative mr-10">
+          <div className="flex max-h-full w-full flex-col rounded-lg border p-5 pt-1">
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-4">
+              <div className="text-base font-medium">Canvaser</div>
+              <div className="flex flex-wrap items-center space-x-4">
+                <div className="relative w-full flex-shrink-0 sm:w-auto">
                   <TextInput
-                    className="bg-latisGray-300 py-2 pl-8 text-sm font-normal text-latisGray-700 placeholder-latisGray-700"
-                    value={''}
+                    className="w-full bg-latisGray-300 py-2 pl-8 text-sm font-normal text-latisGray-700 placeholder-latisGray-700 sm:w-auto sm:text-base"
+                    value=""
                     placeholder="Search by name"
                     handleChange={() => {}}
                   />
                   <MagnifyingGlassIcon
-                    className="absolute left-0 top-0 my-2.5 ml-3 h-5 w-5 text-latisGray-700"
+                    className="absolute left-2 top-1/2 h-5 w-5 -translate-y-1/2 transform text-latisGray-700"
                     aria-hidden="true"
                   />
                 </div>
                 {hasSelectedUsers ? (
                   <>
                     <button
-                      className="item flex cursor-pointer space-x-2 border-r-2 border-latisGray-500 pr-2 text-latisSecondary-800 "
+                      className="flex items-center space-x-2 border-r-2 border-latisGray-500 pr-2 text-sm text-latisSecondary-800 hover:text-latisSecondary-600"
                       onClick={handleBulkDelete}
                     >
                       Delete
                     </button>
                     <div
-                      className="item flex cursor-pointer space-x-2 border-r-2 border-latisGray-500 pr-2 text-latisSecondary-800"
+                      className="flex cursor-pointer items-center space-x-2 border-r-2 border-latisGray-500 pr-2 text-sm text-latisSecondary-800 hover:text-latisSecondary-600"
                       onClick={handleBulkInactive}
                     >
                       Inactive
                     </div>
-
                     <div
-                      className="item flex cursor-pointer space-x-2 border-r-2 border-latisGray-500 pr-2 text-latisSecondary-800"
+                      className="flex cursor-pointer items-center space-x-2 border-r-2 border-latisGray-500 pr-2 text-sm text-latisSecondary-800 hover:text-latisSecondary-600"
                       onClick={handleBulkMove}
                     >
                       Move
                     </div>
                     <div
-                      className="item flex cursor-pointer space-x-2 border-r-2 border-latisGray-500 pr-2 text-latisSecondary-800"
+                      className="flex cursor-pointer items-center space-x-2 border-r-2 border-latisGray-500 pr-2 text-sm text-latisSecondary-800 hover:text-latisSecondary-600"
                       onClick={handleBulkAssignTeam}
                     >
                       Assign to Team
@@ -285,190 +235,177 @@ function UserDetails({
                   </>
                 ) : (
                   <>
-                    <button className="item flex space-x-2 border-r-2 border-latisGray-500 pr-2 text-latisSecondary-800">
+                    <button className="flex items-center space-x-2 text-sm text-latisSecondary-800 hover:text-latisSecondary-600">
                       <AdjustmentsHorizontalIcon className="h-5 w-5" />
-                      <span className="text-sm font-normal">Filter</span>
+                      <span className="font-normal">Filter</span>
                     </button>
-                    <div
-                      className="item flex cursor-pointer space-x-2 border-r-2 border-latisGray-500 pr-2 text-latisSecondary-800"
-                      onClick={() => setIsExportModal(true)}
-                    >
-                      <ArrowDownTrayIcon className="h-5 w-5" />
-                      <span className="cursor-pointer text-sm font-normal">
-                        Export List
-                      </span>
-                    </div>
-                    <div
-                      className="item flex cursor-pointer space-x-2 border-r-2 border-latisGray-500 pr-2 text-latisSecondary-800"
-                      onClick={() => setIsImportModalOpen(true)}
-                    >
-                      <ArrowUpTrayIcon className="h-5 w-5" />
-                      <span className="text-sm font-normal">Import Data</span>
-                    </div>
                     <PrimaryButton
                       onClick={onUser}
-                      className="px-[18px] py-[9px]"
+                      className="flex items-center px-[18px] py-[9px] text-sm"
                     >
-                      <PlusCircleIcon className="inline h-5 w-5 " /> Add User
+                      <PlusCircleIcon className="mr-2 inline h-5 w-5" />
+                      Add User
                     </PrimaryButton>
                   </>
                 )}
               </div>
             </div>
-
-            <div
-              className={classNames(
-                'my-5 gap-5 max-xl:grid-cols-6 sm:grid',
-                !submit && 'border p-5',
-                'rounded-lg'
-              )}
-            >
-              <table className="min-w-full bg-white">
-                <thead>
-                  <tr>
-                    <th className="border-b px-4 py-2 text-left text-sm font-medium text-latisSecondary-700">
-                      <Checkbox
-                        value={allSelected}
-                        handleChange={handleSelectAll}
-                      />{' '}
-                    </th>
-                    <th className="border-b px-4 py-2 text-left text-sm font-medium text-latisSecondary-700">
-                      Name <SortIcon className="ml-2 inline-block" />
-                    </th>
-                    <th className="border-b px-4 py-2 text-left text-sm font-medium text-latisSecondary-700">
-                      Division <SortIcon className="ml-2 inline-block" />
-                    </th>
-                    <th className="border-b px-4 py-2 text-left text-sm font-medium text-latisSecondary-700">
-                      Trade <SortIcon className="ml-2 inline-block" />
-                    </th>
-                    <th className="border-b px-4 py-2 text-left text-sm font-medium text-latisSecondary-700">
-                      Team <SortIcon className="ml-2 inline-block" />
-                    </th>
-                    <th className="border-b px-4 py-2 text-left text-sm font-medium text-latisSecondary-700">
-                      Status <SortIcon className="ml-2 inline-block" />
-                    </th>
-                    <th className="border-b px-4 py-2 text-left text-sm font-medium text-latisSecondary-700">
-                      Role <SortIcon className="ml-2 inline-block" />
-                    </th>
-                    <th className="border-b px-4 py-2 text-left text-sm font-medium text-latisSecondary-700"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {userList?.length > 0 ? (
-                    userList?.map((user, index) => (
-                      <tr key={index}>
-                        <td className="border-b px-4 py-2 text-sm font-normal text-latisGray-900">
-                          <Checkbox
-                            value={selectedUsers?.includes(user.id)}
-                            handleChange={() => handleCheckboxChange(user.id)}
-                          />
-                        </td>
-                        <td
-                          className="border-b px-4 py-2 text-sm font-normal text-latisGray-900 "
-                          onClick={() => handleRowClick(user)}
-                        >
-                          <span className="mr-1 inline-block h-9 w-9 place-items-center rounded-full bg-latisSecondary-700 text-center leading-9 text-white">
-                            {`${user.name?.charAt(0) || ''}${
-                              user.name?.split(' ')[1]?.charAt(0) || ''
-                            }`.toUpperCase()}
-                          </span>
-                          {user.name}
-                        </td>
-                        <td
-                          className="border-b px-4 py-2 text-sm font-normal text-latisGray-900"
-                          onClick={() => handleRowClick(user)}
-                        >
-                          {user.divisions
-                            .map(division => division.name)
-                            .join(', ')}
-                        </td>
-                        <td
-                          className="border-b px-4 py-2 text-sm font-normal text-latisGray-900"
-                          onClick={() => handleRowClick(user)}
-                        >
-                          {user.trades.map(trade => trade.name).join(', ')}
-                        </td>
-                        <td className="border-b px-4 py-2 text-sm font-normal text-latisGray-900">
-                          {user?.teams[0]?.name}
-                        </td>
-                        <td
-                          className="border-b px-4 py-2 text-sm font-normal capitalize text-latisGray-900 "
-                          onClick={() => handleRowClick(user)}
-                        >
-                          <span
-                            className={`rounded-full px-2 py-1  ${
-                              user.status === 'active'
-                                ? 'bg-latisGreen-50 text-latisGreen-800'
-                                : 'bg-latisRed-100 text-latisRed-900'
-                            }`}
+            {userList?.length > 0 ? (
+              <div className="scrollbar-hide mt-5 max-h-full overflow-auto rounded-lg border px-4 first-line:gap-5 max-xl:grid-cols-6 sm:grid">
+                <table className="h-fit min-w-full divide-y divide-latisGray-400 bg-white">
+                  <thead className="sticky top-0 z-20 bg-white">
+                    <tr>
+                      <th className="px-4 py-4 text-left text-sm font-medium text-latisSecondary-700">
+                        <Checkbox
+                          value={allSelected}
+                          handleChange={handleSelectAll}
+                        />{' '}
+                      </th>
+                      <th className="whitespace-nowrap p-4 text-left text-sm font-medium text-latisSecondary-700">
+                        Name <SortIcon className="ml-2 inline-block" />
+                      </th>
+                      <th className="whitespace-nowrap p-4 text-left text-sm font-medium text-latisSecondary-700">
+                        Division <SortIcon className="ml-2 inline-block" />
+                      </th>
+                      <th className="whitespace-nowrap p-4 text-left text-sm font-medium text-latisSecondary-700">
+                        Trade <SortIcon className="ml-2 inline-block" />
+                      </th>
+                      <th className="whitespace-nowrap p-4 text-left text-sm font-medium text-latisSecondary-700">
+                        Team <SortIcon className="ml-2 inline-block" />
+                      </th>
+                      <th className="whitespace-nowrap p-4 text-left text-sm font-medium text-latisSecondary-700">
+                        Status <SortIcon className="ml-2 inline-block" />
+                      </th>
+                      <th className="whitespace-nowrap p-4 text-left text-sm font-medium text-latisSecondary-700">
+                        Role <SortIcon className="ml-2 inline-block" />
+                      </th>
+                      <th className="whitespace-nowrap p-4 text-left text-sm font-medium text-latisSecondary-700"></th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-latisGray-400">
+                    {userList?.length > 0 ? (
+                      userList?.map((user, index) => (
+                        <tr key={index}>
+                          <td className="px-4 py-4 text-sm font-normal text-latisGray-900">
+                            <Checkbox
+                              value={selectedUsers?.includes(user.id)}
+                              handleChange={() => handleCheckboxChange(user.id)}
+                            />
+                          </td>
+                          <td
+                            className="whitespace-nowrap px-4 py-2 text-sm font-normal text-latisGray-900"
+                            onClick={() => handleRowClick(user)}
                           >
-                            {user.status}
-                          </span>
-                        </td>
+                            <span className="mr-1 inline-block h-9 w-9 place-items-center rounded-full bg-latisSecondary-700 text-center leading-9 text-white">
+                              {`${user.name?.charAt(0) || ''}${
+                                user.name?.split(' ')[1]?.charAt(0) || ''
+                              }`.toUpperCase()}
+                            </span>
+                            {user.name}
+                          </td>
+                          <td
+                            className="whitespace-nowrap px-4 py-2 text-sm font-normal text-latisGray-900"
+                            onClick={() => handleRowClick(user)}
+                          >
+                            {user.divisions
+                              .map(division => division.name)
+                              .join(', ')}
+                          </td>
+                          <td
+                            className="whitespace-nowrap px-4 py-2 text-sm font-normal text-latisGray-900"
+                            onClick={() => handleRowClick(user)}
+                          >
+                            {user.trades.map(trade => trade.name).join(', ')}
+                          </td>
+                          <td className="whitespace-nowrap px-4 py-2 text-sm font-normal text-latisGray-900">
+                            {user?.teams[0]?.name}
+                          </td>
+                          <td
+                            className="whitespace-nowrap px-4 py-2 text-sm font-normal capitalize text-latisGray-900"
+                            onClick={() => handleRowClick(user)}
+                          >
+                            <span
+                              className={`rounded-full px-2 py-1  ${
+                                user.status === 'active'
+                                  ? 'bg-latisGreen-50 text-latisGreen-800'
+                                  : 'bg-latisRed-100 text-latisRed-900'
+                              }`}
+                            >
+                              {user.status}
+                            </span>
+                          </td>
+                          <td
+                            className="px-4 py-2 text-sm font-normal text-latisGray-900"
+                            onClick={() => handleRowClick(user)}
+                          >
+                            {user.roles.map(role => role.name).join(', ')}
+                          </td>
+                          <td className="px-4 py-2 text-sm font-normal text-latisGray-900 ">
+                            <ListActions
+                              title={'More Links'}
+                              moreLinks={[
+                                {
+                                  type: 'Edit Canvaser',
+                                  action: () => onEditUser(user),
+                                },
+                                {
+                                  type: 'Activate Canvaser',
+                                  action: () =>
+                                    updateUserStatus(user.id, 'active'),
+                                  color:
+                                    user.status === 'active'
+                                      ? 'text-[#B6B6B6] cursor-not-allowed hover:text-latisGray-700'
+                                      : 'text-latisGray-800',
+                                  disabled: user.status === 'active',
+                                },
+                                {
+                                  type: 'Inactive Canvaser',
+                                  action: () =>
+                                    updateUserStatus(user.id, 'inactive'),
+                                  color:
+                                    user.status === 'inactive'
+                                      ? 'text-[#B6B6B6] cursor-not-allowed hover:text-latisGray-700'
+                                      : 'text-latisGray-800',
+                                  disabled: user.status === 'inactive',
+                                },
+                                {
+                                  type: 'Move Canvaser',
+                                  action: () => onMoveCanvaser(user),
+                                },
+                                {
+                                  type: 'Assign to Team',
+                                  action: () => onAssignTeam(user),
+                                },
+                                {
+                                  type: 'Delete Canvaser',
+                                  action: () => confirmDeleteUser(user),
+                                },
+                              ]}
+                            />
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
                         <td
-                          className="border-b px-4 py-2 text-sm font-normal text-latisGray-900"
-                          onClick={() => handleRowClick(user)}
+                          colSpan="7"
+                          className="border-b px-4 py-2 text-center text-sm font-normal text-latisGray-900"
                         >
-                          {user.roles.map(role => role.name).join(', ')}
-                        </td>
-                        <td className="border-b px-4 py-2 text-sm font-normal text-latisGray-900 ">
-                          <ListActions
-                            title={'More Links'}
-                            moreLinks={[
-                              {
-                                type: 'Edit Canvaser',
-                                action: () => onEditUser(user),
-                              },
-                              {
-                                type: 'Activate Canvaser',
-                                action: () =>
-                                  updateUserStatus(user.id, 'active'),
-                                color:
-                                  user.status === 'active'
-                                    ? 'text-[#B6B6B6] cursor-not-allowed hover:text-latisGray-700'
-                                    : 'text-latisGray-800',
-                                disabled: user.status === 'active',
-                              },
-                              {
-                                type: 'Inactive Canvaser',
-                                action: () =>
-                                  updateUserStatus(user.id, 'inactive'),
-                                color:
-                                  user.status === 'inactive'
-                                    ? 'text-[#B6B6B6] cursor-not-allowed hover:text-latisGray-700'
-                                    : 'text-latisGray-800',
-                                disabled: user.status === 'inactive',
-                              },
-                              {
-                                type: 'Move Canvaser',
-                                action: () => onMoveCanvaser(user),
-                              },
-                              {
-                                type: 'Assign to Team',
-                                action: () => onAssignTeam(user),
-                              },
-                              {
-                                type: 'Delete Canvaser',
-                                action: () => confirmDeleteUser(user),
-                              },
-                            ]}
-                          />
+                          No canvaser found for the selected office.
                         </td>
                       </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td
-                        colSpan="7"
-                        className="border-b px-4 py-2 text-center text-sm font-normal text-latisGray-900"
-                      >
-                        No canvaser found for the selected office.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="mt-4 w-full rounded-lg border p-5">
+                <NoDataListWarning
+                  title="No Canvaser found "
+                  message="Please click on add button to add new canvaser "
+                />
+              </div>
+            )}
           </div>
         </>
       ) : (

@@ -55,9 +55,9 @@ const TerritoryForm = ({
     }
   };
   return (
-    <div className="w-full overflow-auto scrollbar-hide h-60 grow">
-      <div className="overflow-auto grow">
-        <div className="flex flex-col gap-4 px-4 pb-4 border-b">
+    <div className="scrollbar-hide h-60 w-full grow overflow-auto">
+      <div className="grow overflow-auto">
+        <div className="flex flex-col gap-4 border-b px-4 pb-4">
           <div className="space-y-2.5">
             <InputLabel
               required
@@ -121,11 +121,11 @@ const TerritoryForm = ({
                 drawPolygon(true);
               }
             }}
-            className="w-full p-2 text-xs text-center cursor-pointer bg-latisGray-300 text-latisGray-800"
+            className="w-full cursor-pointer bg-latisGray-300 p-2 text-center text-xs text-latisGray-800"
           >
             Draw the area on map
           </div>
-          <div className="flex flex-wrap w-full gap-4">
+          <div className="flex w-full flex-wrap gap-4">
             <PrimaryButton
               className="flex-auto"
               onClick={() => handleEditPolygon()}
@@ -184,7 +184,7 @@ const TerritoryForm = ({
         </div>
         <div></div>
       </div>
-      <div className="flex flex-wrap w-full gap-4 p-4 border-t">
+      <div className="flex w-full flex-wrap gap-4 border-t p-4">
         <SecondaryButton onClick={onCancelTerritory} className="flex-auto">
           Cancel
         </SecondaryButton>

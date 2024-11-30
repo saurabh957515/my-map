@@ -1,11 +1,5 @@
-import {
-  ChatBubbleLeftIcon,
-  PencilIcon,
-  PhoneIcon,
-  EnvelopeIcon,
-  ChevronRightIcon,
-} from '@heroicons/react/24/outline';
-import React, { useState } from 'react';
+import { ChevronRightIcon } from '@heroicons/react/24/outline';
+import { useState } from 'react';
 import { Popover, Tab } from '@headlessui/react';
 import { classNames } from '@/Providers/helpers';
 import PrimaryButton from '@/Components/PrimaryButton';
@@ -16,14 +10,17 @@ import moment from 'moment';
 import useApi from '@/hooks/useApi';
 import { router } from '@inertiajs/react';
 import { route } from '@/Providers/helpers';
+import ConfirmationDialog from '@/Components/ConfirmationDialog';
 const Activities = ({ manageComponent, leadData, setLeadData }) => {
   const [isActivity, setIsActivity] = useState(false);
+  const [isLogging, setIsLogging] = useState(false);
   const [isLogModalOpen, setIsLogModalOpen] = useState(false);
   const [isLogEdit, setIsLogEdit] = useState(false);
   const [isActivityEdit, setIsActivityEdit] = useState(false);
   const [logData, setLogData] = useState({});
   const [selectedActivity, setSelectedActivity] = useState({});
   const { postRoute } = useApi();
+  const [isActivityDelete, setIsDeleteActivity] = useState(false);
   const getLeadPropData = async leadId => {
     const { data, errors } = await postRoute('/canvas/get-lead-prop', {
       lead_id: leadId,
@@ -33,6 +30,16 @@ const Activities = ({ manageComponent, leadData, setLeadData }) => {
     }
   };
 
+  const deleteActivity = activity => {
+    router.delete(route('tenant.canvas-activity-logs.destroy', activity?.id), {
+      onSuccess: mes => {
+        getLeadPropData(leadData?.lead?.id);
+      },
+      onError: error => {
+        console.error(error);
+      },
+    });
+  };
   return (
     <Tab.Group
       as="div"
@@ -77,9 +84,26 @@ const Activities = ({ manageComponent, leadData, setLeadData }) => {
         leadData={leadData}
         isActivity={isActivity}
         setIsActivity={setIsActivity}
+        isLogging={isLogging}
+        setIsLogging={setIsLogging}
       />
 
+      <ConfirmationDialog
+        title="Delete"
+        description="Are you sure you want to delete this Activity?"
+        isOpen={isActivityDelete}
+        setIsOpen={setIsDeleteActivity}
+        onConfirm={() => {
+          setIsDeleteActivity(false);
+          deleteActivity(selectedActivity);
+        }}
+        onCancel={() => {
+          setIsDeleteActivity(false);
+        }}
+      />
       <LogActivity
+        isLogging={isLogging}
+        setIsLogging={setIsLogging}
         setIsLogEdit={setIsLogEdit}
         logData={logData}
         isLogEdit={isLogEdit}
@@ -112,7 +136,7 @@ const Activities = ({ manageComponent, leadData, setLeadData }) => {
           </div>
           <div className="scrollbar-hide flex-1 grow space-y-4 overflow-auto">
             {leadData?.lead?.upcoming_canvas_activity_log?.map(activity => (
-              <div>
+              <div key={activity?.id}>
                 <h1 className="text-base font-medium leading-6 text-latisGray-900">
                   {activity?.activity_name}
                 </h1>
@@ -133,45 +157,40 @@ const Activities = ({ manageComponent, leadData, setLeadData }) => {
                   </span>
                   {activity?.created_by?.name}
                 </p>
-                <div className="grid grid-cols-2 gap-4 px-1 pt-4">
+                <div className="flex w-full flex-wrap gap-4 px-1 pt-4 ">
                   <SecondaryButton
                     onClick={() => {
-                      setIsActivityEdit(true);
-                      setIsActivity(true);
-                      setSelectedActivity(activity);
+                      setIsLogModalOpen(true);
+                      setLogData(activity);
+                      setIsLogging(true);
                     }}
-                    className="w-full"
+                    className="flex-1"
                   >
                     Log {activity?.activity_name}
                   </SecondaryButton>
 
-                  <Popover className="relative w-full">
-                    <Popover.Button className="w-full">
-                      {' '}
+                  <Popover className="relative flex-1">
+                    <Popover.Button as="div" className="w-full">
                       <PrimaryButton className="w-full">More</PrimaryButton>
                     </Popover.Button>
-                    {/* bg-latisSecondary-500 font-semibold text-black'
-              : 'font-normal text-latisGray-900 hover:bg-white */}
-                    <Popover.Panel className="absolute z-10 w-full space-y-2 rounded-b border px-4 py-2">
+                    <Popover.Panel className="absolute z-10 w-full space-y-2 rounded-b border bg-white px-4 py-2">
                       <div className="cursor-pointer text-base hover:text-latisSecondary-800">
                         Reschedule
                       </div>
                       <div
                         onClick={() => {
-                          router.delete(
-                            route(
-                              'tenant.canvas-activity-logs.destroy',
-                              activity?.id
-                            ),
-                            {
-                              onSuccess: mes => {
-                                getLeadPropData(leadData?.lead?.id);
-                              },
-                              onError: error => {
-                                console.error(error);
-                              },
-                            }
-                          );
+                          setIsActivityEdit(true);
+                          setIsActivity(true);
+                          setSelectedActivity(activity);
+                        }}
+                        className="cursor-pointer text-base hover:text-latisSecondary-800"
+                      >
+                        Edit
+                      </div>
+                      <div
+                        onClick={() => {
+                          setIsDeleteActivity(true),
+                            setSelectedActivity(activity);
                         }}
                         className="cursor-pointer text-base hover:text-latisSecondary-800"
                       >
@@ -206,11 +225,11 @@ const Activities = ({ manageComponent, leadData, setLeadData }) => {
                   <div>
                     <span className="text-xs font-normal leading-5">From</span>
                     <span className="text-xs font-medium leading-5">
-                      Matthew Ikemeier to Mary Camaso
+                      {historyLog?.notes}
                     </span>
                   </div>
                   <div className="text-sm font-normal text-latisGray-800">
-                    Justin Apple
+                    {historyLog?.created_by?.name}
                   </div>
                 </div>
                 <span

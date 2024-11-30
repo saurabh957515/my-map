@@ -56,10 +56,10 @@ const SideBar = ({
   handleRedraw,
   setLegendDetails,
   legendDetails,
-  addTerritory,
   isSearchOn,
   searchQuery,
   handleEditPolygon,
+  sketchView,
   ...props
 }) => {
   const { postRoute } = useApi();
@@ -94,11 +94,11 @@ const SideBar = ({
   const getTabIcon = type => {
     switch (type) {
       case 'File':
-        return <GlobeAsiaAustraliaIcon className="h-6 w-6" />;
+        return <GlobeAsiaAustraliaIcon className="w-6 h-6" />;
       case 'Activity':
-        return <UserGroupIcon className="h-6 w-6" />;
+        return <UserGroupIcon className="w-6 h-6" />;
       case 'Insights':
-        return <LightBulbIcon className="h-6 w-6" />;
+        return <LightBulbIcon className="w-6 h-6" />;
       default:
         break;
     }
@@ -123,19 +123,20 @@ const SideBar = ({
   }, [items, legendDetails]);
 
   const { nbHits } = useStats();
+
   return (
     <div
       className={classNames(
-        'absolute right-0 z-50 flex h-full flex-col items-start bg-white shadow transition-all duration-300 ',
-        isPopUpOpen ? 'w-1/3 max-sm:w-1/2 lg:w-3/12' : ' w-0 '
+        ' right-0 z-50 flex h-full flex-col items-start bg-white shadow transition-all duration-300 ',
+        isPopUpOpen ? 'min-w-86 w-3/4 sm:w-5/12 lg:w-3/12' : ' w-0 '
       )}
     >
       {isPopUpOpen && dataLoading && (
-        <div className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 transform justify-center">
-          <div className="h-12 w-12 animate-spin rounded-full border-4 border-blue-400 border-t-transparent"></div>
+        <div className="absolute flex justify-center transform -translate-x-1/2 -translate-y-1/2 left-1/2 top-1/2">
+          <div className="w-12 h-12 border-4 border-blue-400 rounded-full animate-spin border-t-transparent"></div>
         </div>
       )}
-      <div className="flex w-full justify-between border-b p-4">
+      <div className="flex justify-between w-full p-4 border-b">
         <h1 className="text-base font-semibold text-latisGray-900">
           Other Details
         </h1>
@@ -151,7 +152,7 @@ const SideBar = ({
             setLeadData({});
           }}
         >
-          <XMarkIcon className="h-6 w-6 text-latisGray-800" />
+          <XMarkIcon className="w-6 h-6 text-latisGray-800" />
         </span>
       </div>
       <Tab.Group
@@ -169,14 +170,14 @@ const SideBar = ({
         )}
       >
         <Tab.List
-          className="scrollbar-hide w-full border-0 border-transparent bg-white "
+          className="w-full bg-white border-0 border-transparent scrollbar-hide "
           defaultChecked={1}
         >
           <div
             onWheel={e => {
               e.currentTarget.scrollLeft += e.deltaY;
             }}
-            className="scrollbar-hide z-0 flex space-x-8 overflow-x-auto border-b px-4"
+            className="z-0 flex px-4 space-x-8 overflow-x-auto border-b scrollbar-hide"
           >
             {['Records', 'Insights', 'Territories', 'KML']?.map(
               (tab, index) => (
@@ -186,7 +187,7 @@ const SideBar = ({
                     classNames(
                       'pb-2 text-left focus:outline-none',
                       selected
-                        ? 'border-b-2 border-latisSecondary-800 font-medium text-latisSecondary-800'
+                        ? 'z-50 border-b-2 border-latisSecondary-800 font-medium  text-latisSecondary-800'
                         : 'text-latisGray-800'
                     )
                   }
@@ -197,11 +198,11 @@ const SideBar = ({
             )}
           </div>
         </Tab.List>
-        <Tab.Panels className="h-full w-full grow flex-row gap-8 pt-4">
-          <Tab.Panel key={1} className="h-full w-full rounded-b-lg px-4 ">
-            <div className="flex h-full w-full flex-col">
+        <Tab.Panels className="flex-row w-full h-full gap-8 pt-4 grow">
+          <Tab.Panel key={1} className="w-full h-full px-4 rounded-b-lg ">
+            <div className="flex flex-col w-full h-full">
               <div className="w-full space-y-2">
-                <h2 className="flex w-full items-center gap-2 text-base font-semibold">
+                <h2 className="flex items-center w-full gap-2 text-base font-semibold">
                   Recently Update
                   <Popover className={'relative grow rounded-md'}>
                     {({ open }) => (
@@ -214,10 +215,10 @@ const SideBar = ({
                             )}
                           />
                         </Popover.Button>
-                        <Popover.Panel className="absolute z-50 w-fit min-w-60 rounded-md border-0 bg-white text-gray-700 shadow">
+                        <Popover.Panel className="absolute z-50 text-gray-700 bg-white border-0 rounded-md shadow w-fit min-w-60">
                           <div className="py-1">
-                            <div className="cursor-pointer space-y-5 p-4 text-sm">
-                              <h1 className="text-sm font-bold text-latisGray-900 opacity-100">
+                            <div className="p-4 space-y-5 text-sm cursor-pointer">
+                              <h1 className="text-sm font-bold opacity-100 text-latisGray-900">
                                 Recent update
                               </h1>
                               <div className="space-y-3.5">
@@ -257,7 +258,7 @@ const SideBar = ({
                     <div className="flex">
                       <span className="text-xl font-semibold">
                         <span className="dot animate-pulse">.</span>
-                        <span className="dot animate-pulse delay-200">.</span>
+                        <span className="delay-200 dot animate-pulse">.</span>
                         <span className="dot delay-400 animate-pulse">.</span>
                       </span>
                     </div>
@@ -287,14 +288,13 @@ const SideBar = ({
               />
             </div>
           </Tab.Panel>
-          <Tab.Panel key={2} className="h-full w-full border-latisGray-400">
+          <Tab.Panel key={2} className="w-full h-full border-latisGray-400">
             <Insights legendDetails={legendDetails} />
           </Tab.Panel>
-          <Tab.Panel key={3} className="h-full w-full border-latisGray-400">
+          <Tab.Panel key={3} className="w-full h-full border-latisGray-400">
             <Territories
-              handleEditPolygon={handleEditPolygon}
+              sketchView={sketchView}
               territoryObject={territoryObject}
-              addTerritory={addTerritory}
               sketchLayer={sketchLayer}
               setIsTerritoryMethod={setIsTerritoryMethod}
               isTerritoryMethod={isTerritoryMethod}
@@ -309,12 +309,12 @@ const SideBar = ({
           </Tab.Panel>
           <Tab.Panel
             key={4}
-            className="h-full w-full border-latisGray-400 px-4"
+            className="w-full h-full px-4 border-latisGray-400"
           >
-            <div className="flex h-full w-full flex-col">
+            <div className="flex h-full w-full flex-col gap-2.5">
               <div className="w-full space-y-2">
-                <h2 className="flex w-full items-center gap-2 text-sm font-normal text-latisGray-900">
-                  Upload KML or KMZ File:-
+                <h2 className="flex items-center w-full gap-2 text-sm font-normal text-latisGray-900">
+                  Upload KML or KMZ File :-
                 </h2>
               </div>
               <DropZone

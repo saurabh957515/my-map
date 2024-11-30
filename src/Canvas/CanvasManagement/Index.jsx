@@ -10,10 +10,15 @@ import { Tab } from '@headlessui/react';
 import UserDetails from './Partials/Canvas/UserDetails';
 import TeamsDetails from './Partials/Teams/TeamsDetails';
 import LeadsDetails from './Partials/Leads/LeadsDetails';
-import Notifications from '@/Components/Notifications';
 import CanvasDetails from './Partials/Canvas/CanvasDetails';
 import TeamModalDetails from './Partials/Teams/TeamModalDetails';
 import LeadsModalDetails from './Partials/Leads/LeadsModalDetails';
+import {
+  ArrowDownTrayIcon,
+  ArrowUpTrayIcon,
+} from '@heroicons/react/24/outline';
+import ImportModal from './Partials/ImportModal';
+import Export from './Partials/Export';
 
 export default function Index({
   roles,
@@ -23,11 +28,9 @@ export default function Index({
   trades,
   officeOptions,
   teams,
+  from,
 }) {
-  let emptyOffice = {
-    /*...*/
-  };
-
+  let emptyOffice = {};
   const [stateOffices, setStateOffices] = useState([]);
   const [selectedOffice, setSelectedOffice] = useState({});
   const [officeDeleteDialogOpen, setOfficeDeleteDialogOpen] = useState(false);
@@ -43,18 +46,28 @@ export default function Index({
   const [isCanvasOpen, setIsCanvasOpen] = useState(false);
   const [isTeamModalOpen, setIsTeamModalOpen] = useState(false);
   const [leadData, setLeadData] = useState(null);
-  const [stateFlash, setStateFlash] = useState(null);
-  const [flash, setFlash] = useState(null);
-  const [isJobComplete, setIsJobComplete] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
-  const intervalIdRef = useRef(null);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [isExportModal, setIsExportModal] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [pagination, setPagination] = useState(null);
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const closeImportModal = () => {
+    setIsImportModalOpen(false);
+    setSelectedFile(null);
+  };
 
-  const fetchLeadData = async () => {
+  const handleFileChange = event => {
+    setSelectedFile(event.target.files[0]);
+  };
+
+  const fetchLeadData = async (page = 1) => {
     try {
       const response = await axios.post(
         route('tenant.canvas.get-canvas-leads'),
         {
           office_id: selectedOffice?.id,
+          page,
         },
         {
           headers: {
@@ -63,11 +76,29 @@ export default function Index({
         }
       );
 
-      setLeadData(response.data);
+      setLeadData(response.data.data);
+
+      setPagination({
+        currentPage: response?.data.current_page,
+        lastPage: response?.data.last_page,
+        nextPageUrl: response?.data.next_page_url,
+        prevPageUrl: response?.data.prev_page_url,
+        total: response?.data.total,
+      });
     } catch (error) {
       console.error('Error fetching lead data:', error);
     }
   };
+
+  const handlePageChange = page => {
+    fetchLeadData(page);
+  };
+
+  useEffect(() => {
+    if (selectedOffice?.id) {
+      fetchLeadData();
+    }
+  }, [selectedOffice]);
 
   useEffect(() => {
     _.isEmpty(errors) && setStateOffices(offices);
@@ -83,8 +114,14 @@ export default function Index({
         );
       }
       setSelectedOffice(newSelectedOffice);
+    } else {
+      if (from) {
+        setSelectedOffice(offices[0]);
+        fetchLeadData(offices[0]?.id);
+        setSelectedIndex(2);
+      }
     }
-  }, [offices]);
+  }, [offices, from]);
 
   useEffect(() => {
     return router.on('before', event => {
@@ -115,20 +152,6 @@ export default function Index({
     setData(selectedOffice);
   }, [selectedOffice]);
 
-  function deleteOffice() {
-    router.delete(route('tenant.offices.destroy', selectedOffice?.id));
-    setSelectedOffice(emptyOffice);
-  }
-
-  function updateSelectedOffice(office) {
-    setSelectedOffice(office);
-    let cloneOffices = _.cloneDeep(stateOffices);
-    const updatedOffices = cloneOffices.map(cloneOffice => {
-      return cloneOffice.name === office.name ? office : cloneOffice;
-    });
-    setStateOffices(updatedOffices);
-  }
-
   function onClicked(office) {
     setVisitUrl('');
     if (selectedOffice?.id !== office?.id) {
@@ -154,9 +177,8 @@ export default function Index({
   function isOfficeSelected(office) {
     return selectedOffice !== null && office.id === selectedOffice?.id;
   }
-
   return (
-    <TenantAuthenticated title="Teams">
+    <TenantAuthenticated title="Canvaser">
       <div className="h-full w-full flex-row lg:flex">
         <div className="h-full max-xl:mb-6 lg:w-1/4">
           <Panel
@@ -176,18 +198,60 @@ export default function Index({
               isOfficeSelected={isOfficeSelected}
               offices={stateOffices}
             />
+            <Export
+              isExportModal={isExportModal}
+              setIsExportModal={setIsExportModal}
+            />
+            <ImportModal
+              isImportModalOpen={isImportModalOpen}
+              closeImportModal={closeImportModal}
+              handleFileChange={handleFileChange}
+              selectedFile={selectedFile}
+              module={selectedIndex === 0 ? 'User' : 'CanvasLead'}
+            />
           </Panel>
         </div>
 
         <div className="flex h-full w-full flex-col lg:w-3/4">
-          <div className="flex w-full items-center justify-between space-y-1.5 border-b px-7 py-4 text-left max-lg:border-t">
-            <div className="text-xl font-semibold leading-6 text-black">
+          <div className="flex min-h-[60px] w-full flex-wrap items-center justify-between space-y-1.5 border-b px-4 py-4 text-left max-lg:border-t sm:space-y-0 sm:px-5 md:px-7 lg:py-4">
+            <div className="text-lg font-semibold leading-6 text-black sm:text-xl">
               Canvas Details
             </div>
+            {selectedOffice?.name &&
+              (selectedIndex === 0 || selectedIndex === 2) && (
+                <div className="flex flex-wrap items-center justify-start space-x-1 sm:justify-end sm:space-x-4">
+                  <div
+                    className="flex cursor-pointer flex-wrap items-center space-x-2 border-latisGray-500 pr-2 text-latisSecondary-800 sm:border-r-2"
+                    onClick={() => setIsExportModal(true)}
+                  >
+                    <ArrowDownTrayIcon className="h-5 w-5" />
+                    <span className="text-sm font-normal">Export List</span>
+                  </div>
+                  <div
+                    className="flex cursor-pointer flex-wrap items-center space-x-2 pr-2 text-latisSecondary-800"
+                    onClick={() => setIsImportModalOpen(true)}
+                  >
+                    <ArrowUpTrayIcon className="h-5 w-5" />
+                    <span className="text-sm font-normal">
+                      {selectedIndex === 0
+                        ? 'Import Canvas Data'
+                        : selectedIndex === 2
+                        ? 'Import Leads Data'
+                        : ''}
+                    </span>
+                  </div>
+                </div>
+              )}
           </div>
 
           <div className="flex grow flex-col overflow-hidden px-7">
-            <Tab.Group onChange={index => index === 2 && fetchLeadData()}>
+            <Tab.Group
+              selectedIndex={selectedIndex}
+              onChange={index => {
+                index === 2 && fetchLeadData();
+                setSelectedIndex(index);
+              }}
+            >
               {selectedOffice?.name && (
                 <div
                   className={classNames(
@@ -200,45 +264,21 @@ export default function Index({
                     defaultChecked={2}
                   >
                     <div className="z-0 flex space-x-8 border-b">
-                      <Tab
-                        key={1}
-                        className={({ selected }) =>
-                          classNames(
-                            'pb-3 text-left focus:outline-none',
-                            selected
-                              ? '-mb-0.5 border-b-2 border-latisSecondary-800 font-medium text-latisSecondary-800'
-                              : 'text-latisGray-800'
-                          )
-                        }
-                      >
-                        Canvaser
-                      </Tab>
-                      <Tab
-                        key={2}
-                        className={({ selected }) =>
-                          classNames(
-                            'pb-3 text-left focus:outline-none',
-                            selected
-                              ? '-mb-0.5 border-b-2 border-latisSecondary-800 font-medium text-latisSecondary-800'
-                              : 'text-latisGray-800'
-                          )
-                        }
-                      >
-                        Teams
-                      </Tab>
-                      <Tab
-                        key={3}
-                        className={({ selected }) =>
-                          classNames(
-                            ' pb-3 text-left focus:outline-none',
-                            selected
-                              ? '-mb-0.5 border-b-2 border-latisSecondary-800 font-medium text-latisSecondary-800'
-                              : 'text-latisGray-800 '
-                          )
-                        }
-                      >
-                        Leads
-                      </Tab>
+                      {['Canvaser', 'Teams', 'Leads']?.map((tab, index) => (
+                        <Tab
+                          key={index + 1}
+                          className={({ selected }) =>
+                            classNames(
+                              'pb-3 text-left focus:outline-none',
+                              selected
+                                ? '-mb-0.5 border-b-2 border-latisSecondary-800 font-medium text-latisSecondary-800'
+                                : 'text-latisGray-800'
+                            )
+                          }
+                        >
+                          {tab}
+                        </Tab>
+                      ))}
                     </div>
                   </Tab.List>
                 </div>
@@ -249,65 +289,55 @@ export default function Index({
                     key={1}
                     className="block h-full w-full rounded-b-lg"
                   >
-                    <form className="bg-white">
-                      <div className="bg-latisPrimary-500 space-y-7">
-                        <UserDetails
-                          isCreate={true}
-                          data={data}
-                          setData={setData}
-                          errors={errors}
-                          roles={roles}
-                          applications={applications}
-                          divisions={divisions}
-                          offices={offices}
-                          trades={trades}
-                          officeOptions={officeOptions}
-                          userData={selectedOffice?.users}
-                          selectedOfficeId={selectedOffice.id}
-                          isCanvasOpen={isCanvasOpen}
-                          setIsCanvasOpen={setIsCanvasOpen}
-                          setSelectedUser={setSelectedUser}
-                        />
-                      </div>
-                    </form>
+                    <UserDetails
+                      isCreate={true}
+                      data={data}
+                      setData={setData}
+                      errors={errors}
+                      roles={roles}
+                      applications={applications}
+                      divisions={divisions}
+                      offices={offices}
+                      trades={trades}
+                      officeOptions={officeOptions}
+                      userData={selectedOffice?.users}
+                      selectedOfficeId={selectedOffice.id}
+                      isCanvasOpen={isCanvasOpen}
+                      setIsCanvasOpen={setIsCanvasOpen}
+                      setSelectedUser={setSelectedUser}
+                    />
                   </Tab.Panel>
                   <Tab.Panel key={2} className="h-full w-full">
-                    <form className="bg-white">
-                      <div className="bg-latisPrimary-500 space-y-7">
-                        <TeamsDetails
-                          isCreate={true}
-                          data={data}
-                          setData={setData}
-                          errors={errors}
-                          offices={stateOffices}
-                          users={selectedOffice.users}
-                          teams={teams}
-                          setSelectedUser={setSelectedUser}
-                          isTeamModalOpen={isTeamModalOpen}
-                          setIsTeamModalOpen={setIsTeamModalOpen}
-                        />
-                      </div>
-                    </form>
+                    <TeamsDetails
+                      isCreate={true}
+                      data={data}
+                      setData={setData}
+                      errors={errors}
+                      offices={stateOffices}
+                      users={selectedOffice.users}
+                      teams={teams}
+                      setSelectedUser={setSelectedUser}
+                      isTeamModalOpen={isTeamModalOpen}
+                      setIsTeamModalOpen={setIsTeamModalOpen}
+                    />
                   </Tab.Panel>
                   <Tab.Panel
                     key={3}
                     className="h-full w-full border-latisGray-400"
                   >
-                    <form className="bg-white">
-                      <div className="bg-latisPrimary-500 space-y-7">
-                        <LeadsDetails
-                          setIsLeadBarOpen={setIsLeadBarOpen}
-                          isCreate={true}
-                          data={data}
-                          setData={setData}
-                          errors={errors}
-                          officeData={selectedOffice}
-                          leadData={leadData}
-                          isLeadBarOpen={isLeadBarOpen}
-                          setSelectedUser={setSelectedUser}
-                        />
-                      </div>
-                    </form>
+                    <LeadsDetails
+                      setIsLeadBarOpen={setIsLeadBarOpen}
+                      isCreate={true}
+                      data={data}
+                      setData={setData}
+                      errors={errors}
+                      officeData={selectedOffice}
+                      leadData={leadData}
+                      isLeadBarOpen={isLeadBarOpen}
+                      setSelectedUser={setSelectedUser}
+                      pagination={pagination}
+                      handlePageChange={handlePageChange}
+                    />
                   </Tab.Panel>
                 </Tab.Panels>
               </div>

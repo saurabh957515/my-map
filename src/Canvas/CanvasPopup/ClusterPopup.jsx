@@ -1,10 +1,10 @@
-import PrimaryButton from '../../Components/PrimaryButton';
+import PrimaryButton from '@/Components/PrimaryButton';
 import {
   ExclamationTriangleIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
 import React, { useEffect, useState } from 'react';
-import Point from 'https://js.arcgis.com/4.30/@arcgis/core/geometry/Point.js';
+import Point from '@arcgis/core/geometry/Point.js';
 import useApi from '@/hooks/useApi';
 import ElipseCircle from '@/Components/ElipseCircle';
 import moment from 'moment/moment';
@@ -51,7 +51,7 @@ const ClusterPopup = ({
 
   return (
     <div
-      className="custom-popup left-[50%] z-20  flex  w-80 flex-col  space-y-6 rounded-md  bg-white p-3 shadow-sm"
+      className="custom-popup left-[50%] z-10  flex  w-80 flex-col  space-y-6 rounded-md  bg-white p-3 shadow-sm"
       style={{
         ...style,
         position: 'fixed',
@@ -59,13 +59,13 @@ const ClusterPopup = ({
         transform: `translate(-48%, calc(-100% - ${sizeThrottle}px))`,
       }}
     >
-      <div className="flex flex-col w-full grow">
-        <div className="flex justify-between w-full">
+      <div className="flex w-full grow flex-col">
+        <div className="flex w-full justify-between">
           <h3 className="text-base font-medium leading-6 text-black">
             Cluster Details
           </h3>
           <button onClick={onClose}>
-            <XMarkIcon className="w-6 h-6 text-latisGray-800" />
+            <XMarkIcon className="h-6 w-6 text-latisGray-800" />
           </button>
         </div>
 
@@ -76,19 +76,19 @@ const ClusterPopup = ({
           )}
         >
           {loading ? (
-            <div className="z-30 flex items-center justify-center py-2 mt-6 ml-2 ">
-              <div className="w-12 h-12 border-4 border-blue-400 rounded-full animate-spin border-t-transparent"></div>
+            <div className="z-30 ml-2 mt-6 flex items-center justify-center py-2 ">
+              <div className="h-12 w-12 animate-spin rounded-full border-4 border-blue-400 border-t-transparent"></div>
             </div>
           ) : (
             <>
-              <div className="flex flex-col w-full gap-2">
+              <div className="flex w-full flex-col gap-2">
                 {clusterData?.length > 0 ? (
                   clusterData?.map((data, index) => (
                     <div key={index} className="space-y-2">
                       <div className="flex justify-between text-xs font-normal leading-6 text-latisGray-900">
                         <h1 className="flex items-center gap-2">
                           <ElipseCircle
-                            className="w-2 h-2"
+                            className="h-2 w-2"
                             style={{ color: `${data?.color}` }}
                           />{' '}
                           {data?.name}
@@ -112,7 +112,7 @@ const ClusterPopup = ({
                 ) : (
                   <div className="mx-1 text-center">
                     <ExclamationTriangleIcon
-                      className="w-12 h-12 mx-auto text-latisGray-700"
+                      className="mx-auto h-12 w-12 text-latisGray-700"
                       aria-hidden="true"
                     />
                     <h3 className="mt-2 text-sm font-medium text-latisGray-700">
@@ -121,7 +121,7 @@ const ClusterPopup = ({
                   </div>
                 )}
               </div>
-              <div className="w-full mt-4 ">
+              <div className="mt-4 w-full ">
                 <PrimaryButton
                   onClick={e => {
                     e.preventDefault();
@@ -131,7 +131,7 @@ const ClusterPopup = ({
                           longitude: popupCoordinates[0],
                           latitude: popupCoordinates[1],
                         }),
-                        zoom: view?.zoom >= 14 ? view.zoom + 2 : 14,
+                        zoom: view?.zoom >= 18 ? view.zoom + 2 : 18,
                       },
                       { duration: 500 }
                     );

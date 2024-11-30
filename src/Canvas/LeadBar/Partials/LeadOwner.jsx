@@ -15,6 +15,7 @@ const LeadOwner = ({
   setIsAddLeadFormPopUp,
   setIsLeadEdit,
   handlePointClick,
+  setLeadData,
 }) => {
   const [isNotesModalOpen, setIsNotesModalOpen] = useState(false);
   const stageOptions = useMemo(
@@ -97,12 +98,13 @@ const LeadOwner = ({
           </a>
         </div>
         <div
-          className="w-fit rounded-full border border-latisGray-400 p-2"
+          className="w-fit cursor-pointer rounded-full border border-latisGray-400 p-2"
           onClick={() => setIsNotesModalOpen(true)}
         >
           <NotesIcon className="h-5 w-6 text-latisGray-800 opacity-70" />
         </div>
         <NotesModal
+          setLeadData={setLeadData}
           isNotesModalOpen={isNotesModalOpen}
           leadDetail={leadData?.lead}
           currentNoteId={leadData?.note_activity_id}

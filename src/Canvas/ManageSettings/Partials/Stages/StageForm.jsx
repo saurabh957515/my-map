@@ -87,7 +87,7 @@ function StageForm({ data, setData, errors, open }) {
         <InputError message={errors.name} className="mt-2" />
       </div>
 
-      <div className="col-span-3 mt-4">
+      <div className="col-span-6 mt-4">
         <InputLabel className="mb-2" forInput="color" value="Color" required />
         <CustomColorPicker
           color={data.color}

@@ -86,6 +86,13 @@ const AlgoliaSearch = ({
     setUiState(uiState);
     onSearchChange(uiState?.canvas_leads?.query);
   };
+  useEffect(() => {
+    setTimeout(() => {
+      if (isLeadAdded) {
+        setIsLeadAdded(false);
+      }
+    }, 200);
+  }, [isLeadAdded]);
   return (
     <InstantSearch
       future={{

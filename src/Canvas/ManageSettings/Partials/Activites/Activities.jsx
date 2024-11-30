@@ -43,12 +43,17 @@ function Activities() {
   const [open, setOpen] = useState(false);
 
   const handleOnDragEnd = result => {
-    if (!result.destination) return;
+    if (
+      !result.destination ||
+      result.source.index === result.destination.index
+    ) {
+      return;
+    }
 
     const reorderedActivities = Array.from(activities);
     const [reorderedItem] = reorderedActivities.splice(result.source.index, 1);
-    reorderedActivities.splice(result.destination.index, 0, reorderedItem);
 
+    reorderedActivities.splice(result.destination.index, 0, reorderedItem);
     const updatedActivities = reorderedActivities.map((activity, index) => ({
       ...activity,
       order: index + 1,
@@ -65,14 +70,16 @@ function Activities() {
   };
 
   return (
-    <div className="col-span-12 h-[700px] w-full rounded-lg border bg-white p-5 sm:col-span-4">
+    <div className="col-span-12 h-[84vh] w-full rounded-lg border bg-white p-4 sm:col-span-4">
       <div className="relative col-span-4 flex w-full items-center justify-between space-x-2.5">
-        <div className="w-full space-x-2.5 font-semibold">Activities</div>
+        <div className="w-full space-x-2.5 text-base font-medium text-black">
+          Activities
+        </div>
         <AddListButton onClick={() => setOpen(true)} />
         <ActivityCreate setOpen={setOpen} open={open} />
       </div>
 
-      <div className="scrollbar-hide col-span-12 mt-8 space-y-2 overflow-auto sm:col-span-4">
+      <div className="scrollbar-hide col-span-12 mt-6 space-y-2 overflow-auto sm:col-span-4">
         {activities.length > 0 ? (
           <DragDropContext onDragEnd={handleOnDragEnd}>
             <Droppable droppableId="activities">
@@ -80,7 +87,7 @@ function Activities() {
                 <div
                   {...provided.droppableProps}
                   ref={provided.innerRef}
-                  className="scrollbar-hide max-h-[600px] space-y-2 overflow-y-auto"
+                  className="scrollbar-hide max-h-[72vh] space-y-2 overflow-y-auto"
                 >
                   {activities.map((item, index) => (
                     <Draggable
@@ -94,31 +101,31 @@ function Activities() {
                           ref={provided.innerRef}
                           {...provided.draggableProps}
                           {...provided.dragHandleProps}
-                          className={`flex w-full items-center gap-x-2 rounded-lg border bg-white p-4 ${
+                          className={`flex w-full items-center justify-between gap-x-2 rounded-lg border bg-white p-4 ${
                             item.is_suspended ? 'opacity-50' : ''
                           }`}
                         >
-                          {item.is_suspended ? (
-                            <LockIcon className="inline h-7 w-7 text-gray-400" />
-                          ) : (
-                            <DragandMove className="inline h-7 w-7" />
-                          )}
-                          <div className="px-2">
-                            <p
-                              className={`font-semibold text-gray-700 ${
-                                item.is_suspended ? 'text-gray-400' : ''
-                              }`}
-                            >
-                              {item.name}
-                            </p>
-                            <p className="text-sm text-gray-600">
-                              {item.type}, {item.default_duration},{' '}
-                              {item.category}
-                            </p>
+                          <div className="flex items-center space-x-2">
+                            {item.is_suspended ? (
+                              <LockIcon className="inline h-5 w-5 text-latisGray-800" />
+                            ) : (
+                              <DragandMove className="inline h-5 w-5 text-latisGray-800" />
+                            )}
+                            <span>
+                              <p
+                                className={`text-sm font-medium text-latisGray-900 ${
+                                  item.is_suspended ? 'text-gray-400' : ''
+                                }`}
+                              >
+                                {item.name}
+                              </p>
+                              <p className="text-xs font-normal text-latisGray-800">
+                                {item.type}, {item.default_duration},{' '}
+                                {item.category}
+                              </p>
+                            </span>
                           </div>
-                          <div className="ml-auto cursor-pointer justify-end">
-                            <ActivityEdit activity={item} />
-                          </div>
+                          <ActivityEdit activity={item} />
                         </div>
                       )}
                     </Draggable>

@@ -1,10 +1,9 @@
-export function classNames(...classes) {
-  return classes.filter(Boolean).join(' ');
-}
+import LayersIcon from '@/Icons/LayersIcon';
+import { classNames } from '@/Providers/helpers';
 import { Popover } from '@headlessui/react';
-import React, { useState } from 'react';
-// import SearchWidget from './SearchWidget';
-import ToggleSwitch from '../../Components/ToggleSwitch';
+import { useContext } from 'react';
+import SearchWidget from './SearchWidget';
+import ToggleSwitch from '@/Components/ToggleSwitch';
 import {
   GlobeAltIcon,
   GlobeAmericasIcon,
@@ -12,30 +11,25 @@ import {
   PlusIcon,
   UserIcon,
   MapPinIcon,
-  GlobeAsiaAustraliaIcon,
 } from '@heroicons/react/24/outline';
 import TargetPinIcon from '../CanvasIcons/TargetPinIcon';
 import PolygonIcon from '../CanvasIcons/PolygonIcon';
-// import TerritoryIcon from '@/Icons/TerritoryIcon';
+import TerritoryIcon from '@/Icons/TerritoryIcon';
 import KmlIcon from '../CanvasIcons/KmlIcon';
 import SateliteIcon from '../CanvasIcons/SateliteIcon';
 import GpsTrailIcon from '../CanvasIcons/GpsTrailIcon';
-import FullScreenIcon from '../CanvasIcons/FullScreenIcon';
-// import { duration } from 'moment';
-import Graphic from 'https://js.arcgis.com/4.30/@arcgis/core/Graphic.js';
-import Point from 'https://js.arcgis.com/4.30/@arcgis/core/geometry/Point.js';
-import PictureMarkerSymbol from 'https://js.arcgis.com/4.30/@arcgis/core/symbols/PictureMarkerSymbol.js';
+import Graphic from '@arcgis/core/Graphic.js';
+import Point from '@arcgis/core/geometry/Point.js';
+import PictureMarkerSymbol from '@arcgis/core/symbols/PictureMarkerSymbol.js';
 import ReactDOMServer from 'react-dom/server';
 import { MapPinIcon as SolidMap } from '@heroicons/react/24/solid';
-
+import AppContext from '@/helpers/CreateContext/CreateContext';
+import _ from 'lodash';
 const CanvasFilters = ({
   view,
   drawPolygon,
   isSketching,
-  filters,
-  setFilters,
   handlePointClick,
-  handleToggle,
   setNavigatorLoading,
   navigatorLoading,
   handleRedraw,
@@ -44,6 +38,7 @@ const CanvasFilters = ({
   const icons = {
     MapPinIcon,
     UserIcon,
+    TerritoryIcon,
     KmlIcon,
     SateliteIcon,
     GpsTrailIcon,
@@ -51,6 +46,33 @@ const CanvasFilters = ({
     GlobeAltIcon,
   };
 
+  const { setFilters, filters, sketchLayer, setGlobView, isTerritoryMethod } =
+    useContext(AppContext);
+  const handleToggle = index => {
+    let preFilters = _.cloneDeep(filters);
+
+    preFilters = preFilters.map((filter, i) => {
+      if (index === i) {
+        if (filter?.label === 'Territories') {
+          if (!isTerritoryMethod) {
+            sketchLayer.removeAll();
+            return { ...filter, isActive: !filter.isActive };
+          } else {
+            return filter;
+          }
+        } else {
+          if (filter?.label === 'Globe View') {
+            setGlobView(!filter.isActive);
+          }
+          return { ...filter, isActive: !filter.isActive };
+        }
+      } else {
+        return filter;
+      }
+    });
+
+    setFilters(preFilters);
+  };
   const activeCount = filters.filter(filter => filter.isActive).length;
   const handleCurrentLocation = e => {
     if (navigator.geolocation) {
@@ -100,14 +122,14 @@ const CanvasFilters = ({
     <div className="absolute flex flex-col justify-between left-3 h-fit">
       <div className="flex flex-col gap-4">
         <div className="z-50 col-span-4 mt-2 flex  w-[300px] items-center justify-between space-x-2.5">
-          {/* <SearchWidget handlePointClick={handlePointClick} view={view} /> */}
+          <SearchWidget handlePointClick={handlePointClick} view={view} />
         </div>
         <div className="z-30 px-2 pt-2 bg-white border rounded-full shadow-lg cursor-pointer w-fit border-latisGray-400">
           <Popover className={'relative grow rounded-md'}>
             {({ open }) => (
               <>
                 <Popover.Button className="w-6 h-6 text-latisGray-800">
-                  <GlobeAsiaAustraliaIcon
+                  <LayersIcon
                     className={classNames(
                       'h-6 w-6 ',
                       open ? 'text-latisGreen-800' : 'text-latisGray-800'

@@ -1,11 +1,15 @@
+import ElipseCircle from '@/Components/ElipseCircle';
 import React, { useState } from 'react';
 import FullScreenIcon from '../CanvasIcons/FullScreenIcon';
+import { classNames } from '@/Providers/helpers';
+import { usePage } from '@inertiajs/react';
 import { CloudArrowUpIcon } from '@heroicons/react/24/outline';
 import { ArrowsPointingInIcon } from '@heroicons/react/24/solid';
+import ScreenMinimizeIcon from '@/Icons/ScreenMinimizeIcon';
 
 const LegendBar = ({ boundingCondition, legendDetails }) => {
   const [toggleHeight, setIsToggleHeight] = useState(false);
-  const [canvasStages,setCavnvs]=useState([])
+  const { canvasStages } = usePage().props;
   const result = canvasStages.reduce((acc, item) => {
     acc[item.name] = item.color;
     return acc;
@@ -13,29 +17,32 @@ const LegendBar = ({ boundingCondition, legendDetails }) => {
 
   return (
     <div
-      className={'scrollbar-hide absolute bottom-4 left-3 z-20 w-[300px]  overflow-auto rounded-md  bg-white  transition-all duration-200 ease-in-out'}
+      className={classNames(
+        'scrollbar-hide absolute bottom-4 left-3 z-20 w-[300px]  overflow-auto rounded-md  bg-white  transition-all duration-200 ease-in-out',
+        toggleHeight ? 'max-h-[500px]' : 'h-14'
+      )}
     >
-      <div className="sticky top-0 z-20 flex justify-between w-full p-4 bg-white hover:bg-latisGray-400">
+      <div className="sticky top-0 z-20 flex w-full justify-between bg-white p-4 hover:bg-latisGray-400">
         <h1 className="text-sm font-bold">Colorized by Stage</h1>
         <span
           onClick={() => setIsToggleHeight(pre => !pre)}
           className="cursor-pointer"
         >
           {toggleHeight ? (
-            <ArrowsPointingInIcon className="w-6 h-6 text-latisGray-800" />
+            <ScreenMinimizeIcon className="h-6 w-6 text-latisGray-800" />
           ) : (
-            <FullScreenIcon className="w-6 h-6 text-latisGray-800" />
+            <FullScreenIcon className="h-6 w-6 text-latisGray-800" />
           )}
         </span>
       </div>
-      <div className="z-30 flex flex-col w-full gap-4 px-4 pt-2 pb-5 bg-white">
+      <div className="z-30 flex w-full flex-col gap-4 bg-white px-4 pb-5 pt-2">
         {legendDetails?.length > 0 ? (
           legendDetails?.map(legend => (
             <div key={legend?.label} className="space-y-2 ">
               <div className="flex justify-between text-sm font-normal leading-6 text-latisGray-900">
                 <h1 className="flex items-center gap-2">
                   {' '}
-                  <CloudArrowUpIcon
+                  <ElipseCircle
                     className={'h-2 w-2'}
                     style={{
                       color: `${result[legend?.label]}`,

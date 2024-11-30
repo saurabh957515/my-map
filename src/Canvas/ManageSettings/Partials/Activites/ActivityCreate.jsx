@@ -10,7 +10,7 @@ function ActivityCreate({ open, setOpen }) {
     name: '',
     type: '',
     category: '',
-    default_duration: '00:00',
+    default_duration: '',
     results: [],
     is_default: false,
     is_suspendible: true,
@@ -47,7 +47,7 @@ function ActivityCreate({ open, setOpen }) {
           isEdit={false}
           reset={reset}
         />
-        <div className="col-span-6 mt-5 flex justify-end space-x-4">
+        <div className="col-span-6 mt-5 flex flex-wrap gap-4 border-t pt-5 sm:justify-end">
           <SecondaryButton onClick={onClose}>Cancel</SecondaryButton>
           <PrimaryButton type="button" className="w-36" onClick={e => Save(e)}>
             Add

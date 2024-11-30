@@ -9,13 +9,6 @@ import FieldEdit from './FieldEdit';
 
 function Fields() {
   const { canvasFields } = usePage().props;
-  const staticFields = [
-    { field: 'Address' },
-    { field: 'First Name' },
-    { field: 'Last Name' },
-    { field: 'Email' },
-    { field: 'Phone' },
-  ];
 
   const getCanvasFieldsData = () => {
     return canvasFields.map(field => ({
@@ -27,6 +20,7 @@ function Fields() {
       show_in_activity_feed: field.show_in_activity_feed,
       order: field.order,
       is_required: field.stages.length > 0,
+      is_default: field.is_default,
       options:
         field.options.length > 0
           ? field.options.map(option => ({
@@ -48,8 +42,12 @@ function Fields() {
   const [isShowFieldsForm, setIsShowFieldsForm] = useState(false);
 
   const handleOnDragEnd = result => {
-    if (!result.destination) return;
-
+    if (
+      !result.destination ||
+      result.source.index === result.destination.index
+    ) {
+      return;
+    }
     const reorderedFields = Array.from(fields);
     const [reorderedItem] = reorderedFields.splice(result.source.index, 1);
     reorderedFields.splice(result.destination.index, 0, reorderedItem);
@@ -72,13 +70,15 @@ function Fields() {
   };
 
   return (
-    <div className="col-span-12 h-[700px] w-full rounded-lg border bg-white p-5 sm:col-span-4">
+    <div className="col-span-12 max-h-[84vh] w-full rounded-lg border bg-white p-4 sm:col-span-4">
       <div className="relative col-span-4 flex w-full items-center justify-between space-x-2.5">
-        <div className="w-full space-x-2.5 font-semibold">Fields</div>
+        <div className="w-full space-x-2.5 text-base font-medium text-black">
+          Fields
+        </div>
         <AddListButton onClick={() => setIsShowFieldsForm(true)} />
         <FieldsCreate setOpen={setIsShowFieldsForm} open={isShowFieldsForm} />
       </div>
-      <div className="col-span-12 mt-8 space-y-2 sm:col-span-4">
+      <div className="col-span-12 mt-6 space-y-2 sm:col-span-4">
         {fields.length > 0 ? (
           <DragDropContext onDragEnd={handleOnDragEnd}>
             <Droppable droppableId="fields">
@@ -86,7 +86,7 @@ function Fields() {
                 <div
                   {...provided.droppableProps}
                   ref={provided.innerRef}
-                  className="scrollbar-hide max-h-[600px] space-y-2 overflow-y-auto"
+                  className="scrollbar-hide max-h-[72vh] space-y-2 overflow-y-auto"
                 >
                   {fields.map((item, index) => (
                     <Draggable
@@ -99,28 +99,27 @@ function Fields() {
                           ref={provided.innerRef}
                           {...provided.draggableProps}
                           {...provided.dragHandleProps}
-                          className="flex w-full items-center gap-x-2 rounded-lg border bg-white p-4"
+                          className="flex w-full items-center justify-between gap-x-2 rounded-lg border bg-white p-4"
                         >
-                          <DragandMove className="inline h-7 w-7" />
-                          <div className="px-2">
-                            <p className="font-semibold text-gray-700">
-                              {item.title}
-                            </p>
-                            <p className="text-sm text-gray-600">
-                              Type: {item.input_type},{' '}
-                              {item.is_required ? 'Required' : 'Optional'}
-                            </p>
+                          <div className="flex items-center space-x-2">
+                            <DragandMove className="h-5 w-5 text-latisGray-800" />
+
+                            <span>
+                              {' '}
+                              <p className="text-sm font-medium text-latisGray-900">
+                                {item.title}
+                              </p>
+                              <p className="text-xs font-normal text-latisGray-800">
+                                Type: {item.input_type},{' '}
+                                {item.is_required ? 'Required' : 'Optional'}
+                              </p>
+                            </span>
                           </div>
-                          <div className="ml-auto flex cursor-pointer justify-end space-x-1.5">
-                            {staticFields?.some(
-                              field => field.field === item.title
-                            ) ? null : (
+                          <div className="flex cursor-pointer space-x-2">
+                            {item.is_default ? null : (
                               <DeleteField field={item} />
                             )}
-                            <FieldEdit
-                              field={item}
-                              staticFields={staticFields}
-                            />
+                            <FieldEdit field={item} />
                           </div>
                         </div>
                       )}

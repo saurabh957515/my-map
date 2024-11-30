@@ -8,7 +8,7 @@ import FieldOptionsList from './FieldOptionsList';
 import FieldStagesList from './FieldStagesList';
 import ReactSelect from '@/Components/ReactSelect';
 
-function FieldsForm({ data, setData, errors, staticFields }) {
+function FieldsForm({ data, setData, errors }) {
   const { fieldsTypes } = usePage().props;
   const makeReactOptions = obj =>
     Object.entries(obj).map(([label, value]) => ({
@@ -32,6 +32,7 @@ function FieldsForm({ data, setData, errors, staticFields }) {
           value={data?.name}
           placeholder="Name"
           handleChange={e => handleChange('name', e.target.value)}
+          disabled={data.is_default}
         />
         <InputError message={errors?.name} className="mt-2" />
       </div>
@@ -48,7 +49,7 @@ function FieldsForm({ data, setData, errors, staticFields }) {
           onChange={e => handleChange('input_type', e.value)}
           value={data?.input_type}
           className="mt-2.5"
-          disabled={staticFields?.some(item => item.field === data?.name)}
+          disabled={data.id}
         />
         <InputError message={errors?.input_type} className="mt-2" />
       </div>
@@ -65,7 +66,7 @@ function FieldsForm({ data, setData, errors, staticFields }) {
               className="ml-1 cursor-pointer"
             />
             <InputLabel
-              className="mt-0 text-sm font-normal text-latisGray-800"
+              className="mt-1 cursor-pointer text-sm font-normal text-latisGray-800"
               forInput="use_as_filter"
             >
               Use as Filter
@@ -81,7 +82,7 @@ function FieldsForm({ data, setData, errors, staticFields }) {
           />
           <InputLabel
             forInput="is_read_only"
-            className="mt-0.5 text-sm font-normal text-latisGray-800"
+            className="mt-1 cursor-pointer text-sm font-normal text-latisGray-800"
           >
             Make "read-only"
           </InputLabel>
@@ -97,7 +98,7 @@ function FieldsForm({ data, setData, errors, staticFields }) {
               className="ml-1 cursor-pointer"
             />
             <InputLabel
-              className="mt-0.5 text-sm font-normal text-latisGray-800"
+              className="mt-1 cursor-pointer text-sm font-normal text-latisGray-800"
               forInput="show_in_activity_feed"
             >
               Show in Activity Feed

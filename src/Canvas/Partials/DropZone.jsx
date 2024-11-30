@@ -59,7 +59,7 @@ function DropZone({
   }, []);
 
   const getIcon = type => {
-    return <DocumentIcon className="w-full h-full text-gray-400" />;
+    return <DocumentIcon className="h-full w-full text-gray-400" />;
   };
 
   const onDragEnd = result => {
@@ -79,7 +79,7 @@ function DropZone({
     return checkFileChange;
   }, [files, checkFiles]);
   return (
-    <div className="flex flex-col w-full h-full py-2 ">
+    <div className="flex h-full w-full flex-col py-2 ">
       <div className="space-y-4 ">
         <div
           className={classNames(
@@ -96,10 +96,10 @@ function DropZone({
                     e.preventDefault();
                     setNewFile('');
                   }}
-                  className="absolute right-0 w-5 h-5 text-red-500"
+                  className="absolute right-0 h-5 w-5 text-red-500"
                 />
                 <div className="flex h-full overflow-hidden">
-                  <div className="flex flex-col justify-center h-20 item-center">
+                  <div className="item-center flex h-20 flex-col justify-center">
                     {getIcon('doc')}
                   </div>
                 </div>
@@ -112,8 +112,8 @@ function DropZone({
             )}
           </div>
         </div>
-        <InputError className="px-4 my-2" message={errors['file']} />
-        <div className="flex flex-wrap items-center w-full gap-4">
+        <InputError className="my-2 px-4" message={errors['file']} />
+        <div className="flex w-full flex-wrap items-center gap-4">
           {
             <PrimaryButton
               className="flex-1"
@@ -134,7 +134,7 @@ function DropZone({
           </PrimaryButton>
         </div>
       </div>
-      <div className="py-2 overflow-auto grow">
+      <div className="grow overflow-auto py-2">
         <DragDropContext onDragEnd={onDragEnd}>
           <Droppable droppableId="filesDroppable">
             {provided => (
@@ -155,12 +155,10 @@ function DropZone({
                         {...provided.draggableProps}
                         {...provided.dragHandleProps}
                       >
-                        <div className="flex items-center text-xs text-latisGray-800">
+                        <div className="flex flex-wrap items-center text-xs text-latisGray-800">
                           {file?.file_name}
                         </div>
                         <ListActions
-                          icon={<PencilIcon className="w-6 h-6" />}
-                          className={'-mr-12'}
                           title={'More Actions'}
                           moreLinks={[
                             {

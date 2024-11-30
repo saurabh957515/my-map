@@ -85,8 +85,8 @@ const TerritoriesList = ({
                 Territory
               </h2>
               <div className="text-xs font-normal text-latisGray-800">
-                <div className=" grid grid-cols-2 gap-2.5">
-                  <div className="grid grid-cols-2">
+                <div className="grid grid-cols-2 gap-2 ">
+                  <div className="grid grid-cols-2 gap-7 sm:gap-2">
                     <span>
                       <MapPinIcon className="h-6 w-6 text-latisSecondary-700" />
                     </span>
@@ -107,12 +107,12 @@ const TerritoriesList = ({
                   {curTerritory?.name}
                 </h2>
                 <div className="text-xs font-normal text-latisGray-800">
-                  <div className="grid grid-cols-2 items-center">
-                    <div className="ml-2 grid grid-cols-2">
+                  <div className="grid grid-cols-2 items-center gap-2">
+                    <div className="ml-2 grid grid-cols-2 gap-2">
                       <span>0</span>
                       <span>0</span>
                     </div>
-                    <div className="grid grid-cols-2 ">
+                    <div className="grid grid-cols-2 gap-7 sm:gap-2 ">
                       <span
                         onClick={e => {
                           if (territory?.id === curTerritory?.id) {

@@ -10,25 +10,42 @@ import { router } from '@inertiajs/react';
 export default function ImportModal({
   isImportModalOpen,
   closeImportModal,
-  downloadSampleFile,
   handleFileChange,
   selectedFile,
+  module,
 }) {
+  const downloadSampleFile = async () => {
+    try {
+      const response = await axios.get(`/download-sample?module=${module}`, {
+        responseType: 'blob',
+      });
+      const filename = response.headers['x-filename'] || 'sample.csv';
+      const blob = new Blob([response.data], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error('Error downloading the file', error);
+    }
+  };
+
   const handleImport = () => {
     if (selectedFile) {
       const formData = new FormData();
       formData.append('file', selectedFile);
-      formData.append('module', 'CanvasLead');
+      formData.append('module', module);
 
       router.post(`/import-data`, formData, {
         onSuccess: message => {
           console.log(message);
-
           closeImportModal();
         },
         onError: message => {
           console.log(message);
-
           closeImportModal();
         },
       });
@@ -36,6 +53,7 @@ export default function ImportModal({
       console.error('No file selected for import');
     }
   };
+
   return (
     <Popup
       open={isImportModalOpen}

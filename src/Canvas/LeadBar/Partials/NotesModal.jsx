@@ -6,6 +6,7 @@ import { router, useForm, usePage } from '@inertiajs/react';
 
 import PrimaryButton from '@/Components/PrimaryButton';
 import ToggleSwitch from '@/Components/ToggleSwitch';
+import useApi from '@/hooks/useApi';
 
 function NotesModal({
   isNotesModalOpen,
@@ -13,9 +14,20 @@ function NotesModal({
   leadDetail,
   activityOptions,
   currentNoteId,
+  setLeadData,
 }) {
   const { auth } = usePage().props;
   const [isLoading, setIsLoading] = useState(false);
+  const { postRoute } = useApi();
+  const getLeadPropData = async leadId => {
+    const { data, errors } = await postRoute('/canvas/get-lead-prop', {
+      lead_id: leadId,
+    });
+    if (!errors) {
+      setLeadData(data);
+    }
+  };
+
   const { data, setData, post, setError, clearErrors, errors } = useForm({
     title: 'Note',
     activity_id: '',
@@ -47,10 +59,9 @@ function NotesModal({
         clearErrors();
         setData(default_Log);
         setIsNotesModalOpen(false);
+        getLeadPropData(leadDetail?.id);
       },
       onError: error => {
-        console.log(error);
-
         setError(error);
         setIsLoading(false);
       },

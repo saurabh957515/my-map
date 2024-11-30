@@ -25,6 +25,8 @@ function LogActivity({
   logData,
   isLogEdit,
   setIsLogEdit,
+  isLogging,
+  setIsLogging,
 }) {
   const { auth } = usePage().props;
   const [isLoading, setIsLoading] = useState(false);
@@ -47,12 +49,17 @@ function LogActivity({
   useEffect(() => {
     if (isLogEdit && !_.isEmpty(logData)) {
       setData(logData);
+    } else if (isLogging) {
+      setData({ ...logData, is_log: 1 });
     }
-  }, [logData, isLogEdit]);
+  }, [logData, isLogEdit, isLogging]);
 
   const validateFields = () => {
     let formErrors = {};
-    const requiredFields = ['result_id', 'activity_id', 'notes'];
+    const requiredFields = ['activity_id', 'notes'];
+    if (resultOptions?.length > 0) {
+      requiredFields.push('result_id');
+    }
 
     requiredFields.forEach(field => {
       if (
@@ -88,6 +95,7 @@ function LogActivity({
     setData(default_Log);
     setIsLogEdit(false);
     setIsLoading(false);
+    setIsLogging(false);
   }
 
   const handleFollowUpToggle = enabled => {
@@ -124,9 +132,9 @@ function LogActivity({
       setError(formErrors);
       setIsLoading(false);
     } else {
-      if (isLogEdit) {
+      if (isLogEdit || isLogging) {
         router.patch(
-          route('tenant.canvas-activity-logs.update', data?.id),
+          route('tenant.canvas-activity-logs.result.update', data?.id),
           data,
           {
             onSuccess: () => {
@@ -159,12 +167,17 @@ function LogActivity({
       }
     }
   };
-
   return (
     <Popup
       open={isLogModalOpen}
       setOpen={onClose}
-      header={isLogEdit ? 'Edit Log Activity' : 'Add Log Activity'}
+      header={
+        isLogEdit
+          ? 'Edit Log Activity'
+          : isLogging
+          ? `${logData?.activity_name} Log`
+          : 'Add Log Activity'
+      }
       size="md"
     >
       <div className="grid-cols-12 gap-5 max-xl:grid-cols-6 sm:grid">
@@ -184,6 +197,7 @@ function LogActivity({
             value="Activity Type"
           />
           <ReactSelect
+            disabled={isLogging}
             id="activity_type"
             className="text-sm"
             value={data?.activity_id}

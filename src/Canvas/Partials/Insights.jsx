@@ -36,7 +36,7 @@ const Insights = ({ legendDetails }) => {
 
       <div className="space-y-4 border-b px-4 pb-4">
         <div className="text-sm font-medium text-latisGray-900">Tasks</div>
-        <div className="grid grid-cols-2 gap-6">
+        <div className="grid grid-cols-2 gap-y-6">
           <div className="space-y">
             <div className="text-xs font-normal text-latisSecondary-700">
               Created

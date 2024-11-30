@@ -67,26 +67,22 @@ const TerritoriesSearch = ({ dataLoading, polyGons }) => {
         throw new Error('Invalid request body');
       }
       const polygon = [
-        [-52.93117089844555, 45.05886443274703], // [lng, lat]
+        [-52.93117089844555, 45.05886443274703],
         [-54.21107812500772, 29.408365694807717],
-        [-52.93117089844555, 45.05886443274703], // Closing the polygon (same as the first point)
+        [-52.93117089844555, 45.05886443274703],
       ];
 
-      // Extract latitudes and longitudes
       const latitudes = polygon.map(coord => coord[1]);
       const longitudes = polygon.map(coord => coord[0]);
 
-      // Calculate min/max for latitude and longitude
-      const minLat = Math.min(...latitudes); // Bottom latitude
-      const maxLat = Math.max(...latitudes); // Top latitude
-      const minLng = Math.min(...longitudes); // Left longitude
-      const maxLng = Math.max(...longitudes); // Right longitude
+      const minLat = Math.min(...latitudes);
+      const maxLat = Math.max(...latitudes);
+      const minLng = Math.min(...longitudes);
+      const maxLng = Math.max(...longitudes);
 
-      // Bounding box filter (corrected order of coordinates)
       const geoBoundingBoxFilter = `_geoBoundingBox([${minLng}, ${minLat}], [${maxLng}, ${maxLat}])`;
 
       console.log(geoBoundingBoxFilter);
-      // Bounding box filter (corrected order of coordinates)
 
       try {
         body = JSON.parse(opts.body);
@@ -97,7 +93,7 @@ const TerritoriesSearch = ({ dataLoading, polyGons }) => {
 
       if (body.queries) {
         body.queries.forEach(query => {
-          query.filter = geoBoundingBoxFilter; // Apply the geoBoundingBox filter to the query
+          query.filter = geoBoundingBoxFilter;
         });
       }
 
