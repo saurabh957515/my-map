@@ -1,9 +1,10 @@
-import LayersIcon from '@/Icons/LayersIcon';
-import { classNames } from '@/Providers/helpers';
+export function classNames(...classes) {
+  return classes.filter(Boolean).join(' ');
+}
 import { Popover } from '@headlessui/react';
 import React, { useState } from 'react';
-import SearchWidget from './SearchWidget';
-import ToggleSwitch from '@/Components/ToggleSwitch';
+// import SearchWidget from './SearchWidget';
+import ToggleSwitch from '../../Components/ToggleSwitch';
 import {
   GlobeAltIcon,
   GlobeAmericasIcon,
@@ -11,16 +12,16 @@ import {
   PlusIcon,
   UserIcon,
   MapPinIcon,
+  GlobeAsiaAustraliaIcon,
 } from '@heroicons/react/24/outline';
 import TargetPinIcon from '../CanvasIcons/TargetPinIcon';
 import PolygonIcon from '../CanvasIcons/PolygonIcon';
-import TerritoryIcon from '@/Icons/TerritoryIcon';
+// import TerritoryIcon from '@/Icons/TerritoryIcon';
 import KmlIcon from '../CanvasIcons/KmlIcon';
 import SateliteIcon from '../CanvasIcons/SateliteIcon';
 import GpsTrailIcon from '../CanvasIcons/GpsTrailIcon';
 import FullScreenIcon from '../CanvasIcons/FullScreenIcon';
-import ElipseCircle from '@/Components/ElipseCircle';
-import { duration } from 'moment';
+// import { duration } from 'moment';
 import Graphic from 'https://js.arcgis.com/4.30/@arcgis/core/Graphic.js';
 import Point from 'https://js.arcgis.com/4.30/@arcgis/core/geometry/Point.js';
 import PictureMarkerSymbol from 'https://js.arcgis.com/4.30/@arcgis/core/symbols/PictureMarkerSymbol.js';
@@ -43,7 +44,6 @@ const CanvasFilters = ({
   const icons = {
     MapPinIcon,
     UserIcon,
-    TerritoryIcon,
     KmlIcon,
     SateliteIcon,
     GpsTrailIcon,
@@ -69,7 +69,7 @@ const CanvasFilters = ({
             spatialReference: { wkid: 4326 },
           });
           const pinIconSvgString = ReactDOMServer.renderToStaticMarkup(
-            <SolidMap className="z-50 h-8 w-6 text-red-500" />
+            <SolidMap className="z-50 w-6 h-8 text-red-500" />
           );
           const encodedPinIconSvg = encodeURIComponent(pinIconSvgString);
           const iconDataUri = `data:image/svg+xml,${encodedPinIconSvg}`;
@@ -97,31 +97,31 @@ const CanvasFilters = ({
     }
   };
   return (
-    <div className="absolute left-3 flex h-fit flex-col justify-between">
+    <div className="absolute flex flex-col justify-between left-3 h-fit">
       <div className="flex flex-col gap-4">
         <div className="z-50 col-span-4 mt-2 flex  w-[300px] items-center justify-between space-x-2.5">
-          <SearchWidget handlePointClick={handlePointClick} view={view} />
+          {/* <SearchWidget handlePointClick={handlePointClick} view={view} /> */}
         </div>
-        <div className="z-30 w-fit cursor-pointer rounded-full border border-latisGray-400 bg-white px-2 pt-2 shadow-lg">
+        <div className="z-30 px-2 pt-2 bg-white border rounded-full shadow-lg cursor-pointer w-fit border-latisGray-400">
           <Popover className={'relative grow rounded-md'}>
             {({ open }) => (
               <>
-                <Popover.Button className="h-6 w-6 text-latisGray-800">
-                  <LayersIcon
+                <Popover.Button className="w-6 h-6 text-latisGray-800">
+                  <GlobeAsiaAustraliaIcon
                     className={classNames(
                       'h-6 w-6 ',
                       open ? 'text-latisGreen-800' : 'text-latisGray-800'
                     )}
                   />
                   {activeCount > 0 && (
-                    <span className="absolute -right-2 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-latisGreen-800 text-xs text-white">
+                    <span className="absolute flex items-center justify-center w-4 h-4 text-xs text-white rounded-full -right-2 -top-2 bg-latisGreen-800">
                       {activeCount}
                     </span>
                   )}
                 </Popover.Button>
-                <Popover.Panel className="absolute -top-3 left-10 z-50 w-fit min-w-60 rounded-md border-0 bg-white text-gray-700 shadow">
+                <Popover.Panel className="absolute z-50 text-gray-700 bg-white border-0 rounded-md shadow -top-3 left-10 w-fit min-w-60">
                   <div className="">
-                    <div className="cursor-pointer space-y-5 p-4 text-sm">
+                    <div className="p-4 space-y-5 text-sm cursor-pointer">
                       <div className="space-y-4">
                         {filters?.map((filter, index) => {
                           const IconComponent = icons[filter.icon];
@@ -136,9 +136,9 @@ const CanvasFilters = ({
                               )}
                             >
                               <div>
-                                <IconComponent className="h-6 w-6" />
+                                <IconComponent className="w-6 h-6" />
                               </div>
-                              <div className="flex w-full justify-between pl-2 text-sm font-normal ">
+                              <div className="flex justify-between w-full pl-2 text-sm font-normal ">
                                 {filter.label}
                                 <ToggleSwitch
                                   enabled={filter.isActive}
@@ -162,22 +162,22 @@ const CanvasFilters = ({
           onClick={() => {
             view.goTo({ zoom: view.zoom + 1 }, { duration: 500 });
           }}
-          className="z-30 w-fit cursor-pointer rounded-full border border-latisGray-400 bg-white p-2 shadow-lg"
+          className="z-30 p-2 bg-white border rounded-full shadow-lg cursor-pointer w-fit border-latisGray-400"
         >
-          <PlusIcon className="h-6 w-6 text-latisGray-800" />
+          <PlusIcon className="w-6 h-6 text-latisGray-800" />
         </div>
         <div
           onClick={() => {
             view.goTo({ zoom: view.zoom - 1 }, { duration: 500 });
           }}
-          className="z-30 w-fit cursor-pointer rounded-full border border-latisGray-400 bg-white p-2 shadow-lg"
+          className="z-30 p-2 bg-white border rounded-full shadow-lg cursor-pointer w-fit border-latisGray-400"
         >
-          <MinusIcon className="h-6 w-6 text-latisGray-800" />
+          <MinusIcon className="w-6 h-6 text-latisGray-800" />
         </div>
         <div className="flex ">
           <div
             onClick={handleCurrentLocation}
-            className="z-30 flex w-fit cursor-pointer rounded-full border border-latisGray-400 bg-white p-2 shadow-lg"
+            className="z-30 flex p-2 bg-white border rounded-full shadow-lg cursor-pointer w-fit border-latisGray-400"
           >
             <TargetPinIcon
               className={classNames(
@@ -187,14 +187,14 @@ const CanvasFilters = ({
             />
           </div>
           {navigatorLoading && (
-            <div className="z-30 ml-2 flex items-center justify-center py-2 ">
-              <div className="h-6 w-6 animate-spin rounded-full border-4 border-blue-400 border-t-transparent"></div>
+            <div className="z-30 flex items-center justify-center py-2 ml-2 ">
+              <div className="w-6 h-6 border-4 border-blue-400 rounded-full animate-spin border-t-transparent"></div>
             </div>
           )}
         </div>
         <div
           onClick={drawPolygon}
-          className="z-30 w-fit cursor-pointer rounded-full border border-latisGray-400 bg-white p-2 shadow-lg"
+          className="z-30 p-2 bg-white border rounded-full shadow-lg cursor-pointer w-fit border-latisGray-400"
         >
           <PolygonIcon
             className={classNames(

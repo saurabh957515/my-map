@@ -12,7 +12,7 @@ function App() {
   return (
     <>
       {/* <MyGoogleMap /> */}
-      <ArcGisMap/>
+      {/* <ArcGisMap/> */}
       <MyMap />
     </>
   )

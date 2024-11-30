@@ -13,16 +13,14 @@ import { loadModules } from 'esri-loader';
 import GeoJSONLayer from 'https://js.arcgis.com/4.30/@arcgis/core/layers/GeoJSONLayer.js';
 import KMLLayer from 'https://js.arcgis.com/4.30/@arcgis/core/layers/KMLLayer.js';
 import TileLayer from 'https://js.arcgis.com/4.30/@arcgis/core/layers/TileLayer.js';
-
 import { Bars3Icon, GlobeAmericasIcon } from '@heroicons/react/24/outline';
 import Point from 'https://js.arcgis.com/4.30/@arcgis/core/geometry/Point.js';
 import JSZip from 'jszip';
 import SingleOneMarker from '../CanvasIcons/SingleOneMarker';
-
 import SceneView from 'https://js.arcgis.com/4.30/@arcgis/core/views/SceneView.js';
-
+import CanvasFilters from './CanvasFilters'
 const SourceMap = ({ mapType, setIsAddLeadFormPopUp, isAddLeadFormPopUp }) => {
-  const { postRoute, getRoute } = { postRoute:{}, getRoute:{} } 
+  const { postRoute, getRoute } = { postRoute: {}, getRoute: {} }
   const [isMapCreated, setIsMapCreated] = useState(false);
   const [checkFiles, setCheckFiles] = useState([]);
   const [dataLoading, setDataLoading] = useState(false);
@@ -83,7 +81,7 @@ const SourceMap = ({ mapType, setIsAddLeadFormPopUp, isAddLeadFormPopUp }) => {
     boundary_color: '#F2C94C',
     team_id: '',
   });
- 
+
   const filterItems = [
     // { label: 'Active Records', icon: 'MapPinIcon', isActive: false },
     // { label: 'Closed Records', icon: 'MapPinIcon', isActive: false },
@@ -101,7 +99,7 @@ const SourceMap = ({ mapType, setIsAddLeadFormPopUp, isAddLeadFormPopUp }) => {
     const b = parseInt(hex.slice(5, 7), 16);
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
   }
-  const [isTerritoryMethod,setIsTerritoryMethod]=useState(false)
+  const [isTerritoryMethod, setIsTerritoryMethod] = useState(false)
   const [filters, setFilters] = useState(filterItems);
   const [clusterSize, setClusterSize] = useState(Number);
   const handlePointClick = (item, addNewlead) => {
@@ -205,31 +203,31 @@ const SourceMap = ({ mapType, setIsAddLeadFormPopUp, isAddLeadFormPopUp }) => {
             const encodedPinIconSvg = encodeURIComponent(pinIconSvgString);
             const symbol = isCluster
               ? {
-                  type: 'simple-marker',
-                  style: 'circle',
-                  text: cluster.properties.point_count_abbreviated.toString(),
-                  label: pointCount.toString(),
-                  color:
-                    popUpClusterId.current === cluster?.id
-                      ? '#1F2836'
-                      : '#5789D7',
-                  size: `${size}px`,
-                  outline: {
-                    color: 'white',
-                    width: 1.25,
-                  },
-                  font: {
-                    size: '12px',
-                    family: 'sans-serif',
-                    weight: 'bold',
-                  },
-                }
+                type: 'simple-marker',
+                style: 'circle',
+                text: cluster.properties.point_count_abbreviated.toString(),
+                label: pointCount.toString(),
+                color:
+                  popUpClusterId.current === cluster?.id
+                    ? '#1F2836'
+                    : '#5789D7',
+                size: `${size}px`,
+                outline: {
+                  color: 'white',
+                  width: 1.25,
+                },
+                font: {
+                  size: '12px',
+                  family: 'sans-serif',
+                  weight: 'bold',
+                },
+              }
               : {
-                  type: 'picture-marker',
-                  url: 'data:image/svg+xml;charset=UTF-8,' + encodedPinIconSvg,
-                  width: '40px',
-                  height: '40px',
-                };
+                type: 'picture-marker',
+                url: 'data:image/svg+xml;charset=UTF-8,' + encodedPinIconSvg,
+                width: '40px',
+                height: '40px',
+              };
 
             const graphic = new Graphic({
               geometry: {
@@ -296,48 +294,51 @@ const SourceMap = ({ mapType, setIsAddLeadFormPopUp, isAddLeadFormPopUp }) => {
     });
 
     const map = new Map({
-      basemap: mapType,
     });
+  
     map.add(googleTerrainLayer);
     const newView = globView
       ? new SceneView({
-          container: mapDiv.current, // Your map container
-          map: map,
-          zoom: 2, // Global zoom level
-          center: [-84.006, 40.7128], // Example center, you can adjust as needed
-          environment: {
-            atmosphere: {
-              enable: true, // Enables a realistic atmosphere for the globe
-            },
-            lighting: {
-              directShadowsEnabled: true, // Optionally enable shadows
-              ambientOcclusionEnabled: true, // For realistic lighting
-            },
+        container: mapDiv.current, // Your map container
+        map: map,
+        zoom: 2, // Global zoom level
+        center: [-84.006, 40.7128], // Example center, you can adjust as needed
+        environment: {
+          atmosphere: {
+            enable: true, // Enables a realistic atmosphere for the globe
           },
-          constraints: {
-            minZoom: 2,
-            maxZoom: 20,
-            rotationEnabled: true, // Enable globe rotation
+          lighting: {
+            directShadowsEnabled: true, // Optionally enable shadows
+            ambientOcclusionEnabled: true, // For realistic lighting
           },
-          ui: {
-            components: [], // Removes default UI controls (optional)
-          },
-        })
-      : new MapView({
-          container: mapDiv.current,
-          map: map,
-          zoom: 2,
+        },
+        constraints: {
+          minZoom: 2,
           maxZoom: 20,
-          center: [-84.006, 40.7128],
-          constraints: {
-            minZoom: 2,
-            maxZoom: 20,
-            rotationEnabled: false,
-          },
-          ui: {
-            components: [], // Removes zoom controls and other default UI elements
-          },
-        });
+          rotationEnabled: true, // Enable globe rotation
+        },
+        ui: {
+          components: [], // Removes default UI controls (optional)
+        },
+      })
+      : new MapView({
+        container: mapDiv.current,
+        map: map,
+        zoom: 2,
+        maxZoom: 20,
+
+        center: [-84.006, 40.7128],
+        constraints: {
+          minZoom: 2,
+          maxZoom: 20,
+          rotationEnabled: false,
+        },
+        ui: {
+          components: [], // Removes zoom controls and other default UI elements
+        },
+      });
+      newView.navigation.zoomduration =1000;
+      console.log(map,newView)
     setView(newView);
     const initialSketchLayer = new GraphicsLayer();
     setSketchLayer(initialSketchLayer);
@@ -396,7 +397,7 @@ const SourceMap = ({ mapType, setIsAddLeadFormPopUp, isAddLeadFormPopUp }) => {
         } else {
           newView.container.style.cursor = '';
           if (lastHoveredGraphic) {
-        
+
             if (lastHoveredGraphic.labelSymbol) {
               lastHoveredGraphic.labelSymbol.zIndex = 0;
             }
@@ -974,84 +975,11 @@ const SourceMap = ({ mapType, setIsAddLeadFormPopUp, isAddLeadFormPopUp }) => {
 
   return (
     <div className="flex w-full h-full ">
-      {/* {isLeadDetailPopUp ? (
-        <LeadDetailPopUp
-          leadData={leadData}
-          setIsAddLeadFormPopUp={setIsAddLeadFormPopUp}
-          title={popupData.title}
-          content={popupData.content}
-          onClose={e => {
-            e?.preventDefault();
-            setLeadDetailPopUp(false);
-          }}
-          style={{ position: 'absolute', ...popupPosition }}
-        />
-      ) : isAddLeadPopup ? (
-        <AddLeadPopUp
-          leadData={leadData}
-          setIsAddLeadFormPopUp={setIsAddLeadFormPopUp}
-          title={popupData.title}
-          content={popupData.content}
-          onClose={e => {
-            e?.preventDefault();
-            setLeadData({});
-            setIsAddLeadPopup(false);
-            if (view && view.graphics) {
-              view.graphics.removeAll();
-            }
-          }}
-          style={{ position: 'absolute', ...popupPosition }}
-        />
-      ) : isClusterPopUp ? (
-        <ClusterPopup
-          clusterBox={clusterBox}
-          view={view}
-          clusterSize={clusterSize}
-          popupCoordinates={popupCoordinates}
-          setIsClusterPopUp={setIsClusterPopUp}
-          onClose={() => setIsClusterPopUp(false)}
-          style={{ position: 'absolute', ...popupPosition }}
-        />
-      ) : null} */}
 
-      {/* <CanvasFilters
-        showOnlyPolygon={showOnlyPolygon}
-        handleRedraw={handleRedraw}
-        navigatorLoading={navigatorLoading}
-        setNavigatorLoading={setNavigatorLoading}
-        handlePointClick={handlePointClick}
-        setFilters={setFilters}
-        view={view}
-        drawPolygon={drawShowPolyGon}
-        filters={filters}
-        isSketching={isSketching}
-        handleToggle={handleToggle}
-      /> */}
-      {/* <LegendBar
-        legendDetails={legendDetails}
-        boundingCondition={boundingBox}
-      /> */}
-      {/* <TerritoriesSearch polyGons={territory?.geometry?.rings} /> */}
-      {!isLeadBarOpen && !isSidebarOpen && (
-        <div
-          onClick={() => {
-            if (!dataLoading) {
-              setIsSidebarOpen(pre => !pre);
-            }
-          }}
-          className={`absolute right-4  top-4 z-50 cursor-pointer rounded-full,
-           ${!dataLoading && 'bg-white p-2' } `}
-        >
-          {!dataLoading ? (
-            <Bars3Icon className="w-6 h-6 text-latisGray-900 hover:text-latisSecondary-900" />
-          ) : (
-            <div className="w-10 h-10 border-4 border-blue-400 rounded-full animate-spin border-t-transparent"></div>
-          )}
-        </div>
-      )}
+      d
 
       <div ref={mapDiv} className="rounded-l-lg grow" />
-{/* 
+      {/* 
       <AlgoliaSearch
         setSearchQuery={setSearchQuery}
         isSearchOn={isSearchOn}
